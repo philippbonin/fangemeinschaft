@@ -1,0 +1,138 @@
+---
+import { getNextMatch } from '../utils/nextMatch';
+import { stadiums } from '../utils/stadiums';
+
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+
+const nextMatch = await getNextMatch();
+const stadium = stadiums.find(s => s.name === nextMatch?.venue);
+---
+
+{nextMatch && (
+  compact ? (
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="font-semibold">{nextMatch.homeTeam} - {nextMatch.awayTeam}</div>
+        <div class="text-sm text-gray-600">{nextMatch.date}, {nextMatch.time}</div>
+      </div>
+      <a
+        href="/spielinfo"
+        class="text-secondary hover:underline text-sm"
+      >
+        Mehr Info →
+      </a>
+    </div>
+  ) : (
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <div class="text-sm text-secondary font-semibold mb-1">{nextMatch.competition}</div>
+          <div class="text-2xl font-bold text-primary mb-4">{nextMatch.homeTeam} vs {nextMatch.awayTeam}</div>
+          <div class="space-y-2">
+            <div class="flex items-center text-gray-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {nextMatch.date} um {nextMatch.time} Uhr
+            </div>
+            <div class="flex items-center text-gray-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {nextMatch.venue}
+            </div>
+            {stadium && (
+              <div class="text-gray-600">
+                <div class="text-sm">Kapazität: {stadium.capacity.toLocaleString()} Zuschauer</div>
+                <div class="text-sm">Stadt: {stadium.city}</div>
+              </div>
+            )}
+          </div>
+          <div class="mt-6">
+            <button 
+              type="button"
+              class="text-primary hover:underline text-sm more-info-btn"
+            >
+              Mehr Informationen
+            </button>
+          </div>
+        </div>
+        {stadium && (
+          <div class="relative h-64 rounded-lg overflow-hidden">
+            <img 
+              src={stadium.image} 
+              alt={stadium.name}
+              class="w-full h-full object-cover"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="absolute bottom-4 left-4 right-4">
+              <div class="text-white">
+                <h3 class="font-bold text-lg">{stadium.name}</h3>
+                <p class="text-sm text-white/80">{stadium.city}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+)}
+
+<!-- More Info Modal -->
+<div class="modal-backdrop hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+    {nextMatch && (
+      <>
+        <div class="p-6">
+          <h2 class="text-2xl font-bold mb-4">{nextMatch.homeTeam} vs {nextMatch.awayTeam}</h2>
+          <p class="text-gray-600 whitespace-pre-line">{nextMatch.moreInfoContent}</p>
+        </div>
+        <div class="border-t border-gray-200 p-4 flex justify-end">
+          <button
+            type="button"
+            class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors close-modal-btn"
+          >
+            Schließen
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+</div>
+
+<script>
+  // Modal functionality
+  const moreInfoBtn = document.querySelector('.more-info-btn');
+  const modalBackdrop = document.querySelector('.modal-backdrop');
+  const closeModalBtn = document.querySelector('.close-modal-btn');
+
+  function openModal() {
+    modalBackdrop.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modalBackdrop.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  moreInfoBtn?.addEventListener('click', openModal);
+  closeModalBtn?.addEventListener('click', closeModal);
+  modalBackdrop?.addEventListener('click', (e) => {
+    if (e.target === modalBackdrop) {
+      closeModal();
+    }
+  });
+
+  // Close on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modalBackdrop.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+</script>

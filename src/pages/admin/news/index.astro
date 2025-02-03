@@ -1,0 +1,90 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ConfirmDialog from '../../../components/ConfirmDialog.astro';
+import { isAuthenticated } from '../../../utils/auth';
+import { getNews } from '../../../utils/news';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+
+const news = await getNews();
+---
+
+<AdminLayout title="News verwalten">
+  <div class="p-6">
+    <div class="mb-8 flex justify-between items-center">
+      <h1 class="text-2xl font-bold">News verwalten</h1>
+      <a
+        href="/admin/news/create"
+        class="bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors flex items-center space-x-2"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>News erstellen</span>
+      </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datum</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titel</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategorie</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {news.map((item) => (
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {format(new Date(item.date), 'dd.MM.yyyy', { locale: de })}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{item.title}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                    {item.category}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex justify-end space-x-2">
+                    <a 
+                      href={`/admin/news/${item.id}/edit`}
+                      class="text-secondary hover:text-secondary/90"
+                    >
+                      Bearbeiten
+                    </a>
+                    <form 
+                      method="POST" 
+                      action={`/api/news/${item.id}/delete`}
+                      class="inline"
+                      data-confirm
+                    >
+                      <button type="submit" class="text-red-600 hover:text-red-900">
+                        Löschen
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <ConfirmDialog
+    title="News löschen"
+    message="Sind Sie sicher, dass Sie diese News löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+  />
+</AdminLayout>

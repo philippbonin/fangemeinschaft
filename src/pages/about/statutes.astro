@@ -1,0 +1,108 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Satzung - Fangemeinschaft">
+  <div class="container mx-auto px-4 py-12">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-4xl font-bold mb-8">Satzung (Stand 01.11.2024)</h1>
+
+      <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="prose max-w-none">
+          <div class="space-y-8">
+            <ol class="list-none space-y-12">
+              {/* Each major section */}
+              <li class="space-y-4">
+                <h2 class="text-2xl font-bold text-primary border-b border-gray-200 pb-2">1. Name, Sitz, Geschäftsjahr</h2>
+                <ol class="list-decimal pl-6 space-y-2 text-gray-700">
+                  <li>Der Verein führt den Namen "SC Freiburg Fangemeinschaft", ist im Vereinsregister unter der Nummer VR 3104 eingetragen und führt den Zusatz e.V.</li>
+                  <li>Die Namensabkürzung ist FG.</li>
+                  <li>Sitz des Vereins "SC Freiburg Fangemeinschaft e.V." ist Achim-Stocker-Str. 1, 79108 Freiburg i. Br.</li>
+                  <li>Das Geschäftsjahr entspricht dem Kalenderjahr.</li>
+                </ol>
+              </li>
+
+              <li class="space-y-4">
+                <h2 class="text-2xl font-bold text-primary border-b border-gray-200 pb-2">2. Zweck</h2>
+                <ol class="list-decimal pl-6 space-y-2 text-gray-700">
+                  <li>Zweck der FG ist es, den Sport-Club Freiburg e.V. (im Weiteren SC genannt) zu unterstützen.</li>
+                  <li>Rechte und Pflichten der FG und die Zusammenarbeit mit dem SC sind ggf. in einer separaten Kooperationsvereinbarung geregelt.</li>
+                </ol>
+              </li>
+
+              {/* Continue with all sections following the same pattern */}
+            </ol>
+          </div>
+
+          <!-- Download Link -->
+          <div class="mt-12 pt-8 border-t border-gray-200">
+            <div class="flex justify-between items-center">
+              <p class="text-sm text-gray-500">
+                Die vorstehend genannte Satzung wurde auf der Mitgliederversammlung am 22.10.2024 beschlossen und tritt zum 1.11.2024 in Kraft
+              </p>
+              <a 
+                href="https://www.fangemeinschaft.de/upload/files/FG_Satzung_2024.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-4 py-2 bg-secondary text-white rounded hover:bg-secondary/90 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                PDF herunterladen
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Custom styling for better readability */
+    .prose h2 {
+      @apply text-2xl font-bold text-primary border-b border-gray-200 pb-2 mb-4;
+    }
+
+    .prose h3 {
+      @apply text-xl font-semibold text-primary mt-6 mb-3;
+    }
+
+    .prose ol {
+      @apply space-y-2 text-gray-700;
+    }
+
+    .prose ol > li {
+      @apply leading-relaxed;
+    }
+
+    .prose ol ol {
+      @apply mt-2 ml-6;
+    }
+
+    .prose ul {
+      @apply list-disc list-inside mt-2 ml-6 space-y-1;
+    }
+
+    /* Add subtle hover effect to sections */
+    .prose > div > ol > li:hover {
+      @apply bg-gray-50 rounded-lg transition-colors duration-200;
+    }
+
+    /* Style nested lists */
+    .prose ol ol li {
+      @apply text-gray-700;
+    }
+
+    /* Improve spacing for better readability */
+    .space-y-12 > li {
+      @apply bg-white rounded-lg p-6 shadow-sm;
+    }
+
+    /* Style section numbers */
+    .prose h2::before {
+      @apply text-secondary font-normal mr-2;
+      content: "§";
+    }
+  </style>
+</Layout>

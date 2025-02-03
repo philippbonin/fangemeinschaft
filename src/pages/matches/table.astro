@@ -1,0 +1,82 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getBundesligaTable } from '../../utils/bundesliga';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+
+const teams = await getBundesligaTable();
+---
+
+<Layout title="Tabelle - Fangemeinschaft">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-4xl font-bold mb-8">Bundesliga Tabelle</h1>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <table class="min-w-full">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Pos</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Verein</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Sp</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">S</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">U</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">N</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Tore</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">TD</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold text-gray-600">Pkt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {teams.map((team) => (
+            <tr class:list={[
+              'border-t border-gray-200',
+              {
+                'bg-green-50': team.position <= 4,
+                'bg-blue-50': team.position === 5 || team.position === 6,
+                'bg-red-50': team.position >= 16
+              }
+            ]}>
+              <td class="px-4 py-3 text-sm">{team.position}</td>
+              <td class="px-4 py-3">
+                <div class="flex items-center">
+                  <img 
+                    src={team.teamIconUrl} 
+                    alt={team.teamName} 
+                    class="w-6 h-6 mr-2"
+                  />
+                  <span class="font-medium">{team.teamName}</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-center">{team.matches}</td>
+              <td class="px-4 py-3 text-center">{team.won}</td>
+              <td class="px-4 py-3 text-center">{team.draw}</td>
+              <td class="px-4 py-3 text-center">{team.lost}</td>
+              <td class="px-4 py-3 text-center">{team.goals}:{team.opponentGoals}</td>
+              <td class="px-4 py-3 text-center">{team.goalDiff}</td>
+              <td class="px-4 py-3 text-center font-bold">{team.points}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex items-center">
+        <div class="w-4 h-4 bg-green-50 rounded mr-2"></div>
+        <span class="text-sm text-gray-600">Champions League (Platz 1-4)</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-4 h-4 bg-blue-50 rounded mr-2"></div>
+        <span class="text-sm text-gray-600">Europa League/Conference League (Platz 5-6)</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-4 h-4 bg-red-50 rounded mr-2"></div>
+        <span class="text-sm text-gray-600">Abstiegsplätze (Platz 16-18)</span>
+      </div>
+    </div>
+
+    <div class="mt-4 text-sm text-gray-500">
+      Daten bereitgestellt von OpenLigaDB - Stand: {format(new Date(), 'dd. MMMM yyyy, HH:mm', { locale: de })} Uhr
+    </div>
+  </div>
+</Layout>

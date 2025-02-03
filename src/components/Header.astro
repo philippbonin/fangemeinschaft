@@ -1,0 +1,257 @@
+---
+import { getSettings } from '../utils/settings';
+
+const settings = await getSettings();
+
+const navigation = [
+  {
+    name: 'Home',
+    href: '/',
+  },
+  { 
+    name: 'News', 
+    href: '/news',
+    submenu: [
+      { name: 'Aktuelle News', href: '/news' }
+    ]
+  },
+  { 
+    name: 'Mannschaft', 
+    href: '/team/squad',
+    submenu: [
+      { name: 'Kader', href: '/team/squad' },
+      { name: 'Trainer', href: '/team/coaches' },
+      { name: 'Staff', href: '/team/staff' }
+    ]
+  },
+  { 
+    name: 'Spielbetrieb', 
+    href: '/matches/schedule',
+    submenu: [
+      { name: 'Spielplan', href: '/matches/schedule' },
+      { name: 'Tabelle', href: '/matches/table' }
+    ]
+  },
+  {
+    name: 'Fanclubs',
+    href: '/fanclubs',
+    submenu: [
+      { name: 'Übersicht', href: '/fanclubs' }
+    ]
+  },
+  {
+    name: 'Über uns',
+    href: '/about',
+    submenu: [
+      { name: 'Allgemein', href: '/about' },
+      { name: 'Vorstand', href: '/about/board' },
+      { name: '1904 - Dein Club', href: '/about/club' },
+      { name: 'Satzung', href: '/about/statutes' }
+    ]
+  }
+];
+---
+
+<header class="bg-white relative z-20" role="banner">
+  <!-- Top Bar -->
+  <div class="bg-secondary text-white py-1.5">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center text-sm">
+        <nav aria-label="Schnellzugriff">
+          <ul class="flex space-x-6">
+            <li>
+              <a href="/contact" class="hover:text-gray-200 text-xs uppercase tracking-wider">Kontakt</a>
+            </li>
+            <li>
+              <a href="/newsletter" class="hover:text-gray-200 text-xs uppercase tracking-wider">Newsletter</a>
+            </li>
+          </ul>
+        </nav>
+        <nav aria-label="Social Media">
+          <ul class="flex space-x-4">
+            <li>
+              <a 
+                href="https://facebook.com/fangemeinschaft" 
+                class="hover:text-gray-200" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="Besuche uns auf Facebook"
+              >
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+            </li>
+            <li>
+              <a 
+                href="https://instagram.com/fangemeinschaft" 
+                class="hover:text-gray-200" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="Folge uns auf Instagram"
+              >
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.897 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.897-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/>
+                </svg>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Navigation -->
+  <nav class="border-b border-gray-200" aria-label="Hauptnavigation">
+    <div class="container mx-auto px-4">
+      <div class="flex items-center justify-between h-20">
+        <a href="/" class="flex items-center space-x-3" aria-label="Zur Startseite">
+          <img 
+            src={settings.logoUrl} 
+            alt="Fangemeinschaft Logo" 
+            class="h-16 w-auto object-contain"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              img.src = '/fangemeinschaftLogo.png';
+            }}
+          />
+        </a>
+        
+        <!-- Mobile menu button -->
+        <button 
+          type="button" 
+          class="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-secondary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-secondary"
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+          id="mobile-menu-button"
+          aria-label="Hauptmenü öffnen"
+        >
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        <!-- Desktop menu -->
+        <div class="hidden lg:flex items-center space-x-1">
+          {
+            navigation.map((item) => (
+              <div class="relative group">
+                <a
+                  href={item.href}
+                  class="px-4 py-2 text-gray-700 hover:text-secondary group-hover:text-secondary transition-colors inline-flex items-center"
+                  aria-expanded={item.submenu ? "false" : undefined}
+                  aria-haspopup={item.submenu ? "true" : undefined}
+                >
+                  {item.name}
+                  {item.submenu && (
+                    <svg class="w-4 h-4 ml-1" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  )}
+                </a>
+                {item.submenu && (
+                  <div 
+                    class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby={`${item.name}-menu`}
+                  >
+                    {item.submenu.map((subitem) => (
+                      <a
+                        href={subitem.href}
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-secondary"
+                        role="menuitem"
+                      >
+                        {subitem.name}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          }
+          <a
+            href="/membership"
+            class="ml-4 bg-secondary text-white px-6 py-2 rounded-sm hover:bg-secondary/90 transition-colors uppercase text-sm tracking-wider"
+          >
+            Mitglied werden
+          </a>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div class="hidden lg:hidden" id="mobile-menu" role="menu">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+          {
+            navigation.map((item) => (
+              <div>
+                <a
+                  href={item.href}
+                  class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-secondary hover:bg-gray-50 rounded-md"
+                  role="menuitem"
+                >
+                  {item.name}
+                </a>
+                {item.submenu && (
+                  <div class="pl-4 space-y-1" role="menu">
+                    {item.submenu.map((subitem) => (
+                      <a
+                        href={subitem.href}
+                        class="block px-3 py-2 text-sm text-gray-600 hover:text-secondary hover:bg-gray-50 rounded-md"
+                        role="menuitem"
+                      >
+                        {subitem.name}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          }
+          <a
+            href="/membership"
+            class="block w-full text-center bg-secondary text-white px-6 py-2 rounded-sm hover:bg-secondary/90 transition-colors uppercase text-sm tracking-wider mt-4"
+            role="menuitem"
+          >
+            Mitglied werden
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<script>
+  // Mobile menu functionality
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  if (mobileMenuButton && mobileMenu) {
+    mobileMenuButton.addEventListener('click', () => {
+      const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+      
+      // Toggle menu visibility
+      mobileMenu.classList.toggle('hidden');
+      
+      // Update aria-expanded
+      mobileMenuButton.setAttribute('aria-expanded', (!isExpanded).toString());
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      if (!mobileMenuButton.contains(target) && !mobileMenu.contains(target)) {
+        mobileMenu.classList.add('hidden');
+        mobileMenuButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close menu when pressing Escape
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.add('hidden');
+        mobileMenuButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+</script>

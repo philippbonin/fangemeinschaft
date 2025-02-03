@@ -1,0 +1,102 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../../utils/auth';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+---
+
+<AdminLayout title="Benutzer erstellen">
+  <div class="p-6">
+    <div class="mb-8 flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Benutzer erstellen</h1>
+      <a 
+        href="/admin/users" 
+        class="text-gray-600 hover:text-secondary flex items-center space-x-1"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Zurück</span>
+      </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm">
+      <form action="/api/users" method="POST" class="p-6">
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="firstName">
+                Vorname
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="lastName">
+                Nachname
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="email">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="password">
+              Passwort
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+            />
+          </div>
+
+          <div class="flex justify-end space-x-4">
+            <a 
+              href="/admin/users"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Abbrechen
+            </a>
+            <button
+              type="submit"
+              class="bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
+            >
+              Speichern
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>

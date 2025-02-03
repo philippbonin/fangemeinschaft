@@ -1,0 +1,87 @@
+---
+interface Props {
+  formation: {
+    players: {
+      id: string;
+      name: string;
+      number: number;
+      position: string;
+      x: number;
+      y: number;
+    }[];
+    gameDetails?: {
+      date: string;
+      time: string;
+      place: string;
+      homeTeam: string;
+      awayTeam: string;
+    };
+  };
+}
+
+const { formation } = Astro.props;
+---
+
+<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+  <h2 class="text-2xl font-bold mb-4">Letzte Aufstellung</h2>
+  
+  <!-- Game Details -->
+  {formation.gameDetails && (
+    <div class="mb-6 bg-gray-50 rounded-lg p-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <div class="text-sm text-gray-500">Datum</div>
+          <div class="font-semibold">{formation.gameDetails.date}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Anstoß</div>
+          <div class="font-semibold">{formation.gameDetails.time}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Spielort</div>
+          <div class="font-semibold">{formation.gameDetails.place}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Begegnung</div>
+          <div class="font-semibold">
+            {formation.gameDetails.homeTeam} vs {formation.gameDetails.awayTeam}
+          </div>
+        </div>
+      </div>
+    </div>
+  )}
+  
+  <div class="relative w-full" style="height: 600px; background: linear-gradient(to bottom, #4caf50, #388e3c);">
+    <!-- Field markings -->
+    <div class="absolute inset-0 flex flex-col">
+      <!-- Center circle -->
+      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-white/50 rounded-full"></div>
+      <!-- Center line -->
+      <div class="absolute top-1/2 left-0 right-0 h-px bg-white/50 transform -translate-y-1/2"></div>
+      <!-- Penalty areas -->
+      <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-64 h-24 border-2 border-white/50"></div>
+      <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-64 h-24 border-2 border-white/50"></div>
+    </div>
+
+    <!-- Players -->
+    {formation.players.map((player) => (
+      <div
+        class="absolute transform -translate-x-1/2 -translate-y-1/2 text-center"
+        style={`left: ${player.x}%; top: ${player.y}%;`}
+      >
+        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-1 mx-auto">
+          <span class="text-sm font-bold">{player.number}</span>
+        </div>
+        <div class="text-white text-sm font-semibold whitespace-nowrap">
+          {player.name}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {Astro.slots.has('admin-controls') && (
+    <div class="mt-4">
+      <slot name="admin-controls" />
+    </div>
+  )}
+</div>

@@ -1,0 +1,173 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../../../utils/auth';
+import { getNewsById } from '../../../../utils/news';
+import { getAssets } from '../../../../utils/assets';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+
+const { id } = Astro.params;
+const news = await getNewsById(id);
+const assets = await getAssets();
+const imageAssets = assets.filter(asset => asset.url.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+
+if (!news) {
+  return Astro.redirect('/admin/news');
+}
+
+const categories = ['Team News', 'Match Report', 'Club News', 'Press Release'];
+---
+
+<AdminLayout title="News bearbeiten">
+  <div class="p-6">
+    <div class="mb-8 flex items-center justify-between">
+      <h1 class="text-2xl font-bold">News bearbeiten</h1>
+      <a 
+        href="/admin/news" 
+        class="text-gray-600 hover:text-secondary flex items-center space-x-1"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Zurück</span>
+      </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm">
+      <form action={`/api/news/${id}`} method="POST" class="p-6">
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="title">
+              Titel
+            </label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={news.title}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="category">
+              Kategorie
+            </label>
+            <select
+              id="category"
+              name="category"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+            >
+              {categories.map((category) => (
+                <option value={category} selected={category === news.category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="image">
+              Bild
+            </label>
+            <div class="relative">
+              <select
+                id="image"
+                name="image"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent appearance-none"
+              >
+                <option value="">Bitte wählen</option>
+                {imageAssets.map((asset) => (
+                  <option 
+                    value={asset.url} 
+                    data-preview={asset.url}
+                    data-name={asset.name}
+                    selected={asset.url === news.image}
+                  >
+                    {asset.name}
+                  </option>
+                ))}
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            <div id="imagePreviewContainer" class={news.image ? 'mt-4' : 'hidden mt-4'}>
+              <div class="flex items-start space-x-4">
+                <div class="w-32 h-32 rounded-lg overflow-hidden bg-gray-100">
+                  <img id="imagePreview" src={news.image} alt="" class="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h4 id="imageName" class="font-medium text-gray-900">
+                    {imageAssets.find(asset => asset.url === news.image)?.name}
+                  </h4>
+                  <p id="imageUrl" class="text-sm text-gray-500 break-all">{news.image}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="content">
+              Inhalt
+            </label>
+            <textarea
+              id="content"
+              name="content"
+              rows="10"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+            >{news.content}</textarea>
+          </div>
+
+          <div class="flex justify-end space-x-4">
+            <a 
+              href="/admin/news"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Abbrechen
+            </a>
+            <button
+              type="submit"
+              class="bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
+            >
+              Speichern
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  const imageSelect = document.getElementById('image') as HTMLSelectElement;
+  const previewContainer = document.getElementById('imagePreviewContainer');
+  const previewImage = document.getElementById('imagePreview') as HTMLImageElement;
+  const imageName = document.getElementById('imageName');
+  const imageUrl = document.getElementById('imageUrl');
+
+  imageSelect?.addEventListener('change', () => {
+    const selectedOption = imageSelect.options[imageSelect.selectedIndex];
+    const previewUrl = selectedOption.getAttribute('data-preview');
+    const name = selectedOption.getAttribute('data-name');
+    
+    if (previewUrl && previewContainer && previewImage && imageName && imageUrl) {
+      previewContainer.classList.remove('hidden');
+      previewImage.src = previewUrl;
+      imageName.textContent = name || '';
+      imageUrl.textContent = previewUrl;
+    } else if (previewContainer) {
+      previewContainer.classList.add('hidden');
+    }
+  });
+</script>

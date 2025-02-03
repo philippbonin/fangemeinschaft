@@ -1,0 +1,92 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ConfirmDialog from '../../../components/ConfirmDialog.astro';
+import { isAuthenticated } from '../../../utils/auth';
+import { getUsers } from '../../../utils/users';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+
+const users = await getUsers();
+---
+
+<AdminLayout title="Benutzer verwalten">
+  <div class="p-6">
+    <div class="mb-8 flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Benutzer verwalten</h1>
+      <a
+        href="/admin/users/create"
+        class="bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors flex items-center space-x-2"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>Benutzer erstellen</span>
+      </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Letzter Login</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {users.map((user) => (
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    {user.firstName} {user.lastName}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500">{user.email}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500">
+                    {user.lastLogin ? format(new Date(user.lastLogin), 'dd.MM.yyyy HH:mm', { locale: de }) : '-'}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex justify-end space-x-2">
+                    <a 
+                      href={`/admin/users/${user.id}/edit`}
+                      class="text-secondary hover:text-secondary/90"
+                    >
+                      Bearbeiten
+                    </a>
+                    <form 
+                      method="POST" 
+                      action={`/api/users/${user.id}/delete`}
+                      class="inline"
+                      data-confirm
+                    >
+                      <button type="submit" class="text-red-600 hover:text-red-900">
+                        Löschen
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <ConfirmDialog
+    title="Benutzer löschen"
+    message="Sind Sie sicher, dass Sie diesen Benutzer löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+  />
+</AdminLayout>

@@ -1,0 +1,113 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../utils/auth';
+import { getNews } from '../../utils/news';
+import { getMatches } from '../../utils/matches';
+import { getPlayers } from '../../utils/team';
+import { getNextMatch } from '../../utils/nextMatch';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+
+const news = await getNews();
+const matches = await getMatches();
+const players = await getPlayers();
+const nextMatch = await getNextMatch();
+
+// Get statistics
+const totalNews = news.length;
+const totalMatches = matches.length;
+const totalPlayers = players.length;
+---
+
+<AdminLayout title="Dashboard">
+  <div class="p-6">
+    <h1 class="text-2xl font-bold mb-8">Dashboard</h1>
+    
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <svg class="h-8 w-8 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2" />
+            </svg>
+          </div>
+          <div class="ml-5">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">News</dt>
+              <dd class="mt-1 text-3xl font-semibold text-gray-900">{totalNews}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <svg class="h-8 w-8 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div class="ml-5">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Spiele</dt>
+              <dd class="mt-1 text-3xl font-semibold text-gray-900">{totalMatches}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <svg class="h-8 w-8 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <div class="ml-5">
+            <dl>
+              <dt class="text-sm font-medium text-gray-500 truncate">Spieler</dt>
+              <dd class="mt-1 text-3xl font-semibold text-gray-900">{totalPlayers}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next Match Preview -->
+    {nextMatch && (
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Nächstes Spiel</h2>
+          <a 
+            href="/admin/next-match/edit"
+            class="text-secondary hover:text-secondary/90"
+          >
+            Bearbeiten
+          </a>
+        </div>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <div class="text-sm text-gray-500">{nextMatch.competition}</div>
+            <div class="text-xl font-bold">{nextMatch.homeTeam} vs {nextMatch.awayTeam}</div>
+            <div class="text-gray-600">{nextMatch.date} um {nextMatch.time} Uhr</div>
+            <div class="text-gray-600">{nextMatch.venue}</div>
+          </div>
+          <div class="mt-4 md:mt-0">
+            <a 
+              href={nextMatch.ticketLink}
+              class="inline-block bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
+              target="_blank"
+            >
+              Ticket Link prüfen
+            </a>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+</AdminLayout>

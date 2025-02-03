@@ -1,0 +1,106 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getMatchById } from '../../utils/matches';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+import { stadiums } from '../../utils/stadiums';
+
+const { id } = Astro.params;
+const match = await getMatchById(id);
+
+if (!match) {
+  return Astro.redirect('/404');
+}
+
+const stadium = stadiums.find(s => s.name === match.venue);
+const matchDate = new Date(match.date);
+---
+
+<Layout title={`${match.homeTeam} vs ${match.awayTeam} - Fangemeinschaft`}>
+  <div class="container mx-auto px-4 py-12">
+    <!-- Match Header -->
+    <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+      <div class="text-sm text-secondary font-semibold mb-2">{match.competition}</div>
+      <h1 class="text-4xl font-bold mb-6">{match.homeTeam} vs {match.awayTeam}</h1>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <div class="text-sm text-gray-500 mb-1">Datum & Uhrzeit</div>
+          <div class="font-semibold">
+            {format(matchDate, 'dd. MMMM yyyy', { locale: de })} um {format(matchDate, 'HH:mm')} Uhr
+          </div>
+        </div>
+        
+        <div>
+          <div class="text-sm text-gray-500 mb-1">Spielort</div>
+          <div class="font-semibold">{match.venue}</div>
+        </div>
+
+        {!match.played && (
+          <div>
+            <a
+              href="/tickets"
+              class="inline-block bg-secondary text-white px-6 py-3 rounded-md hover:bg-secondary/90 transition-colors"
+            >
+              Tickets kaufen
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Stadium Info -->
+    {stadium && (
+      <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="relative h-64 md:h-full">
+            <img 
+              src={stadium.image} 
+              alt={stadium.name}
+              class="w-full h-full object-cover"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="absolute bottom-4 left-4 right-4">
+              <div class="text-white">
+                <h3 class="font-bold text-lg">{stadium.name}</h3>
+                <p class="text-sm text-white/80">{stadium.city}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="p-6 md:col-span-2">
+            <h2 class="text-2xl font-bold mb-4">Stadion Information</h2>
+            <div class="grid grid-cols-2 gap-6">
+              <div>
+                <div class="text-sm text-gray-500 mb-1">Stadt</div>
+                <div class="font-semibold">{stadium.city}</div>
+              </div>
+              <div>
+                <div class="text-sm text-gray-500 mb-1">Kapazität</div>
+                <div class="font-semibold">{stadium.capacity.toLocaleString()} Zuschauer</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <!-- Match Result -->
+    {match.played && (
+      <div class="bg-white rounded-lg shadow-md p-8">
+        <h2 class="text-2xl font-bold mb-6">Spielergebnis</h2>
+        <div class="flex justify-center items-center space-x-8">
+          <div class="text-center">
+            <div class="text-lg font-semibold mb-2">{match.homeTeam}</div>
+            <div class="text-4xl font-bold">{match.homeScore}</div>
+          </div>
+          <div class="text-4xl font-bold text-gray-400">:</div>
+          <div class="text-center">
+            <div class="text-lg font-semibold mb-2">{match.awayTeam}</div>
+            <div class="text-4xl font-bold">{match.awayScore}</div>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>

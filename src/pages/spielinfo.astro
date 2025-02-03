@@ -1,0 +1,72 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getNextMatch } from '../utils/nextMatch';
+import FormationDisplay from '../components/FormationDisplay.astro';
+
+const nextMatch = await getNextMatch();
+
+// Mock formation data for the upcoming game
+const formation = {
+  players: [
+    { id: '1', name: 'M. Müller', number: 1, position: 'GK', x: 50, y: 90 },
+    { id: '2', name: 'T. Schmidt', number: 2, position: 'RB', x: 85, y: 75 },
+    { id: '3', name: 'L. Weber', number: 4, position: 'CB', x: 65, y: 75 },
+    { id: '4', name: 'N. Fischer', number: 5, position: 'CB', x: 35, y: 75 },
+    { id: '5', name: 'J. Wagner', number: 3, position: 'LB', x: 15, y: 75 },
+    { id: '6', name: 'P. Becker', number: 6, position: 'CDM', x: 50, y: 60 },
+    { id: '7', name: 'F. Schulz', number: 8, position: 'CM', x: 30, y: 45 },
+    { id: '8', name: 'D. Koch', number: 10, position: 'CAM', x: 70, y: 45 },
+    { id: '9', name: 'R. Hoffmann', number: 7, position: 'RW', x: 85, y: 25 },
+    { id: '10', name: 'K. Meyer', number: 9, position: 'ST', x: 50, y: 15 },
+    { id: '11', name: 'S. Wolf', number: 11, position: 'LW', x: 15, y: 25 }
+  ],
+  gameDetails: {
+    date: nextMatch.date,
+    time: nextMatch.time,
+    place: nextMatch.venue,
+    homeTeam: nextMatch.homeTeam,
+    awayTeam: nextMatch.awayTeam
+  }
+};
+---
+
+<Layout title={`${nextMatch.homeTeam} vs ${nextMatch.awayTeam} - Fangemeinschaft`}>
+  <div class="container mx-auto px-4 py-12">
+    <!-- Game Header -->
+    <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+      <div class="text-sm text-secondary font-semibold mb-2">{nextMatch.competition}</div>
+      <h1 class="text-4xl font-bold mb-4">{nextMatch.homeTeam} vs {nextMatch.awayTeam}</h1>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <div class="text-sm text-gray-500 mb-1">Datum & Uhrzeit</div>
+          <div class="font-semibold">{nextMatch.date} um {nextMatch.time} Uhr</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500 mb-1">Spielort</div>
+          <div class="font-semibold">{nextMatch.venue}</div>
+        </div>
+        <div>
+          <a
+            href={nextMatch.ticketLink}
+            class="inline-block bg-secondary text-white px-6 py-3 rounded-md hover:bg-secondary/90 transition-colors"
+          >
+            Tickets kaufen
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expected Formation -->
+    <FormationDisplay formation={formation} />
+
+    <!-- Additional Information -->
+    <div class="bg-white rounded-lg shadow-md p-8">
+      <h2 class="text-2xl font-bold mb-4">Weitere Informationen</h2>
+      <div class="prose max-w-none">
+        {nextMatch.moreInfoContent.split('\n').map((paragraph) => (
+          <p class="mb-4 text-gray-600">{paragraph}</p>
+        ))}
+      </div>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,126 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../../utils/auth';
+import { getPlayers } from '../../../utils/team';
+import FormationEditor from '../../../components/react/FormationEditor';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+
+const players = await getPlayers();
+---
+
+<AdminLayout title="Aufstellung erstellen">
+  <div class="p-6">
+    <div class="mb-8 flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Aufstellung erstellen</h1>
+      <a 
+        href="/admin/formation" 
+        class="text-gray-600 hover:text-secondary flex items-center space-x-1"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Zurück</span>
+      </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm">
+      <form action="/api/formation" method="POST" class="p-6">
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="date">
+                Datum
+              </label>
+              <input
+                type="date"
+                id="date"
+                name="date"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="time">
+                Uhrzeit
+              </label>
+              <input
+                type="time"
+                id="time"
+                name="time"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="homeTeam">
+                Heimmannschaft
+              </label>
+              <input
+                type="text"
+                id="homeTeam"
+                name="homeTeam"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="awayTeam">
+                Gastmannschaft
+              </label>
+              <input
+                type="text"
+                id="awayTeam"
+                name="awayTeam"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="place">
+                Spielort
+              </label>
+              <input
+                type="text"
+                id="place"
+                name="place"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-4">
+              Aufstellung
+            </label>
+            <FormationEditor client:load players={players} />
+          </div>
+
+          <div class="flex justify-end space-x-4">
+            <a 
+              href="/admin/formation"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Abbrechen
+            </a>
+            <button
+              type="submit"
+              class="bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
+            >
+              Speichern
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>

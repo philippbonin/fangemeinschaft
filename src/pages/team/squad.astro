@@ -1,0 +1,61 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FormationDisplay from '../../components/FormationDisplay.astro';
+import { getPlayers } from '../../utils/team';
+
+const players = await getPlayers();
+const sortedPlayers = players.sort((a, b) => a.number - b.number);
+
+// Mock formation data - in a real app, this would come from a database
+const formation = {
+  players: [
+    { id: '1', name: 'M. Müller', number: 1, position: 'GK', x: 50, y: 90 },
+    { id: '2', name: 'T. Schmidt', number: 2, position: 'RB', x: 85, y: 75 },
+    { id: '3', name: 'L. Weber', number: 4, position: 'CB', x: 65, y: 75 },
+    { id: '4', name: 'N. Fischer', number: 5, position: 'CB', x: 35, y: 75 },
+    { id: '5', name: 'J. Wagner', number: 3, position: 'LB', x: 15, y: 75 },
+    { id: '6', name: 'P. Becker', number: 6, position: 'CDM', x: 50, y: 60 },
+    { id: '7', name: 'F. Schulz', number: 8, position: 'CM', x: 30, y: 45 },
+    { id: '8', name: 'D. Koch', number: 10, position: 'CAM', x: 70, y: 45 },
+    { id: '9', name: 'R. Hoffmann', number: 7, position: 'RW', x: 85, y: 25 },
+    { id: '10', name: 'K. Meyer', number: 9, position: 'ST', x: 50, y: 15 },
+    { id: '11', name: 'S. Wolf', number: 11, position: 'LW', x: 15, y: 25 }
+  ],
+  gameDetails: {
+    date: '24.03.2024',
+    time: '15:30',
+    place: 'Heimstadion',
+    homeTeam: 'Fangemeinschaft',
+    awayTeam: 'FC Rival'
+  }
+};
+---
+
+<Layout title="Kader - Fangemeinschaft">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-4xl font-bold mb-8">Kader</h1>
+    
+    <!-- Formation Display -->
+    <FormationDisplay formation={formation} />
+    
+    <!-- Squad List -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {sortedPlayers.map((player) => (
+        <div class="bg-white rounded-lg overflow-hidden shadow-md">
+          <div class="aspect-w-3 aspect-h-4">
+            <img 
+              src={player.image} 
+              alt={player.name} 
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div class="p-4">
+            <div class="text-secondary font-bold text-2xl mb-1">#{player.number}</div>
+            <h3 class="font-bold text-lg">{player.name}</h3>
+            <div class="text-gray-600">{player.position}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>

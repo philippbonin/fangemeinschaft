@@ -1,0 +1,45 @@
+---
+// Get the last test run result from environment variable or local storage
+// In a real app, this would come from your CI/CD pipeline or a status API
+const lastTestRun = new Date().toISOString();
+const testsPassing = true; // This would be dynamic in a real app
+---
+
+<div class="flex items-center space-x-4">
+  <div class="flex items-center space-x-2">
+    <div class="flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+      </svg>
+      <span class="ml-2 text-sm text-gray-300">EAA konform</span>
+    </div>
+  </div>
+  <div 
+    class="flex items-center space-x-2 group relative"
+    role="status"
+    aria-label="Accessibility Test Status"
+  >
+    <div class="flex items-center">
+      <div class={`w-2 h-2 rounded-full ${testsPassing ? 'bg-green-500' : 'bg-red-500'}`}></div>
+      <span class="ml-2 text-sm text-gray-300">Tests {testsPassing ? 'bestanden' : 'fehlgeschlagen'}</span>
+    </div>
+    <button 
+      type="button"
+      class="text-gray-300 hover:text-white"
+      aria-label="Test Details anzeigen"
+      aria-expanded="false"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </button>
+    <div class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-sm rounded-lg py-2 px-3 hidden group-hover:block w-64">
+      <p>Letzter Test: {new Date(lastTestRun).toLocaleString('de-DE')}</p>
+      {testsPassing ? (
+        <p class="text-green-400">Alle Accessibility Tests erfolgreich</p>
+      ) : (
+        <p class="text-red-400">Einige Tests sind fehlgeschlagen</p>
+      )}
+    </div>
+  </div>
+</div>

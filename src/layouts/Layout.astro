@@ -1,0 +1,42 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Chat from '../components/react/Chat';
+import CookieConsent from '../components/react/CookieConsent';
+import BuildLabel from '../components/BuildLabel.astro';
+import { prisma } from '../lib/prisma';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Fangemeinschaft - Modern Soccer Club Website" } = Astro.props;
+const settings = await prisma.settings.findFirst();
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen bg-gray-50">
+    {settings?.buildLabelEnabled && <BuildLabel />}
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-secondary text-white px-4 py-2 rounded-md">
+      Zum Hauptinhalt springen
+    </a>
+    <Header />
+    <main id="main-content" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    {settings?.chatEnabled && <Chat client:load />}
+    <CookieConsent client:load />
+  </body>
+</html>

@@ -1,0 +1,214 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../../utils/auth';
+import { getSettings } from '../../../utils/settings';
+import { getAssets } from '../../../utils/assets';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+
+// Get settings and assets from database
+const settings = await getSettings();
+const assets = await getAssets();
+console.log('Loaded assets:', assets); // Debug log
+
+const imageAssets = assets.filter(asset => asset.mime_type.startsWith('image/'));
+---
+
+<AdminLayout title="Einstellungen">
+  <div class="p-6">
+    <div class="mb-8 flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Einstellungen</h1>
+    </div>
+
+    <div class="max-w-2xl">
+      <div class="bg-white rounded-lg shadow-sm">
+        <form action="/api/settings" method="POST" class="p-6">
+          <div class="space-y-6">
+            <!-- Logo Settings -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Logo
+              </label>
+              <div class="mb-4">
+                <div class="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
+                  <img id="selectedImage" src={settings.logoUrl} alt="" class="w-full h-full object-contain" />
+                </div>
+              </div>
+              <input type="hidden" id="logoUrl" name="logoUrl" value={settings.logoUrl} required />
+              
+              <div class="grid grid-cols-4 gap-4 mt-4 max-h-60 overflow-y-auto p-2 bg-gray-50 rounded-lg">
+                {imageAssets.map((asset) => (
+                  <button
+                    type="button"
+                    class="image-select-btn relative aspect-square bg-white rounded-lg overflow-hidden border-2 hover:border-secondary transition-colors"
+                    class:list={[
+                      'border-2',
+                      settings.logoUrl === asset.url ? 'border-secondary' : 'border-transparent'
+                    ]}
+                    data-url={asset.url}
+                  >
+                    <img src={asset.url} alt={asset.name} class="w-full h-full object-contain" />
+                    {settings.logoUrl === asset.url && (
+                      <div class="absolute top-1 right-1 bg-secondary text-white rounded-full p-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <!-- Feature Toggles -->
+            <div class="space-y-4">
+              <div>
+                <div class="flex items-center justify-between">
+                  <label class="text-sm font-medium text-gray-700" for="chatEnabled">
+                    Chat aktivieren
+                  </label>
+                  <button 
+                    type="button"
+                    id="chatToggle"
+                    class="relative inline-block w-11 h-6 transition-colors duration-200 ease-in-out rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+                    role="switch"
+                    aria-checked={settings.chatEnabled}
+                  >
+                    <input
+                      type="hidden"
+                      id="chatEnabled"
+                      name="chatEnabled"
+                      value={settings.chatEnabled ? "true" : "false"}
+                    />
+                    <div
+                      class={`absolute inset-0 rounded-full transition-colors ${
+                        settings.chatEnabled ? 'bg-secondary' : 'bg-gray-200'
+                      }`}
+                    >
+                      <div
+                        class={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                          settings.chatEnabled ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      ></div>
+                    </div>
+                  </button>
+                </div>
+                <p class="mt-1 text-sm text-gray-500">
+                  Aktiviert oder deaktiviert den Chat-Support auf der Website.
+                </p>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between">
+                  <label class="text-sm font-medium text-gray-700" for="buildLabelEnabled">
+                    Build Label anzeigen
+                  </label>
+                  <button 
+                    type="button"
+                    id="buildLabelToggle"
+                    class="relative inline-block w-11 h-6 transition-colors duration-200 ease-in-out rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+                    role="switch"
+                    aria-checked={settings.buildLabelEnabled}
+                  >
+                    <input
+                      type="hidden"
+                      id="buildLabelEnabled"
+                      name="buildLabelEnabled"
+                      value={settings.buildLabelEnabled ? "true" : "false"}
+                    />
+                    <div
+                      class={`absolute inset-0 rounded-full transition-colors ${
+                        settings.buildLabelEnabled ? 'bg-secondary' : 'bg-gray-200'
+                      }`}
+                    >
+                      <div
+                        class={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                          settings.buildLabelEnabled ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      ></div>
+                    </div>
+                  </button>
+                </div>
+                <p class="mt-1 text-sm text-gray-500">
+                  Zeigt oder versteckt das Build Label mit Zeitstempel und Build-Namen.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+              <button
+                type="submit"
+                class="bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
+              >
+                Speichern
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // Image selection functionality
+  const logoUrl = document.getElementById('logoUrl') as HTMLInputElement;
+  const selectedImage = document.getElementById('selectedImage') as HTMLImageElement;
+  const imageButtons = document.querySelectorAll('.image-select-btn');
+
+  imageButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const url = button.getAttribute('data-url');
+      if (url && logoUrl && selectedImage) {
+        // Update hidden input and preview
+        logoUrl.value = url;
+        selectedImage.src = url;
+
+        // Update selected state
+        imageButtons.forEach(btn => {
+          const checkmark = btn.querySelector('div');
+          if (btn === button) {
+            btn.classList.add('border-secondary');
+            if (checkmark) checkmark.classList.remove('hidden');
+          } else {
+            btn.classList.remove('border-secondary');
+            if (checkmark) checkmark.classList.add('hidden');
+          }
+        });
+      }
+    });
+  });
+
+  // Toggle functionality
+  function setupToggle(toggleId: string, inputId: string) {
+    const toggle = document.getElementById(toggleId) as HTMLButtonElement;
+    const input = document.getElementById(inputId) as HTMLInputElement;
+
+    if (toggle && input) {
+      toggle.addEventListener('click', () => {
+        const isEnabled = input.value === 'true';
+        const newValue = !isEnabled;
+        
+        input.value = newValue.toString();
+        toggle.setAttribute('aria-checked', newValue.toString());
+        
+        const toggleDiv = toggle.querySelector('div');
+        const handle = toggleDiv?.querySelector('div');
+        
+        if (toggleDiv && handle) {
+          toggleDiv.classList.toggle('bg-secondary', newValue);
+          toggleDiv.classList.toggle('bg-gray-200', !newValue);
+          handle.classList.toggle('translate-x-5', newValue);
+          handle.classList.toggle('translate-x-0', !newValue);
+        }
+      });
+    }
+  }
+
+  setupToggle('chatToggle', 'chatEnabled');
+  setupToggle('buildLabelToggle', 'buildLabelEnabled');
+</script>

@@ -1,0 +1,85 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getMatches } from '../../utils/matches';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+import { stadiums, DEFAULT_STADIUM_IMAGE } from '../../utils/stadiums';
+
+const matches = await getMatches();
+// Sort matches by date from newest to oldest
+const sortedMatches = matches.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+---
+
+<Layout title="Spielplan - Fangemeinschaft">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-4xl font-bold mb-8">Spielplan</h1>
+    
+    <div class="space-y-6">
+      {sortedMatches.map((match) => {
+        const stadium = stadiums.find(s => s.name === match.venue);
+        return (
+          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="p-6 md:col-span-2">
+                <div class="text-sm text-gray-500 mb-2">
+                  {format(new Date(match.date), 'dd. MMMM yyyy, HH:mm', { locale: de })} - {match.competition}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center mb-4">
+                  <div class="flex items-center justify-between md:justify-end">
+                    <span class="text-lg font-semibold">{match.homeTeam}</span>
+                    <span class="mx-4 text-2xl font-bold">
+                      {match.played ? match.homeScore : ''}
+                    </span>
+                  </div>
+                  
+                  <div class="text-center">
+                    <span class="text-2xl font-bold mx-4">
+                      {match.played ? ':' : 'vs'}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center justify-between md:justify-start">
+                    <span class="mx-4 text-2xl font-bold">
+                      {match.played ? match.awayScore : ''}
+                    </span>
+                    <span class="text-lg font-semibold">{match.awayTeam}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center text-gray-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {match.venue}
+                  {stadium && (
+                    <span class="ml-2 text-sm">
+                      ({stadium.city}, {stadium.capacity.toLocaleString()} Plätze)
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div class="relative h-48 md:h-full">
+                <img 
+                  src={stadium?.image || DEFAULT_STADIUM_IMAGE} 
+                  alt={stadium?.name || match.venue}
+                  class="w-full h-full object-cover"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                  <div class="text-white">
+                    <h3 class="font-bold">{match.venue}</h3>
+                    {stadium && (
+                      <p class="text-sm text-white/80">{stadium.city}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</Layout>

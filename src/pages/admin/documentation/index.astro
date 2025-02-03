@@ -1,0 +1,119 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../../utils/auth';
+import { marked } from 'marked';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+
+// Import docs directly using Vite's import.meta.glob
+const docs = import.meta.glob('../../../docs/*.md', { as: 'raw', eager: true });
+
+// Parse docs
+const readme = marked.parse(docs['../../../docs/README.md'] || '');
+const technologies = marked.parse(docs['../../../docs/technologies.md'] || '');
+const projectStructure = marked.parse(docs['../../../docs/project-structure.md'] || '');
+const database = marked.parse(docs['../../../docs/database.md'] || '');
+const admin = marked.parse(docs['../../../docs/admin.md'] || '');
+---
+
+<AdminLayout title="Documentation">
+  <div class="p-6">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold">Documentation</h1>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm">
+      <div class="p-6">
+        <!-- Navigation -->
+        <div class="flex space-x-4 mb-8">
+          <button
+            class="px-4 py-2 text-sm font-medium text-white bg-secondary rounded-md hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+            data-section="overview"
+          >
+            Overview
+          </button>
+          <button
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+            data-section="technologies"
+          >
+            Technologies
+          </button>
+          <button
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+            data-section="structure"
+          >
+            Project Structure
+          </button>
+          <button
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+            data-section="database"
+          >
+            Database
+          </button>
+          <button
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+            data-section="admin"
+          >
+            Admin Features
+          </button>
+        </div>
+
+        <!-- Content sections -->
+        <div id="overview" class="prose max-w-none">
+          <Fragment set:html={readme} />
+        </div>
+        <div id="technologies" class="prose max-w-none hidden">
+          <Fragment set:html={technologies} />
+        </div>
+        <div id="structure" class="prose max-w-none hidden">
+          <Fragment set:html={projectStructure} />
+        </div>
+        <div id="database" class="prose max-w-none hidden">
+          <Fragment set:html={database} />
+        </div>
+        <div id="admin" class="prose max-w-none hidden">
+          <Fragment set:html={admin} />
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  function showSection(sectionId: string) {
+    // Hide all sections
+    document.querySelectorAll('.prose').forEach(section => {
+      section.classList.add('hidden');
+    });
+    
+    // Show selected section
+    document.getElementById(sectionId)?.classList.remove('hidden');
+    
+    // Update active button state
+    document.querySelectorAll('button[data-section]').forEach(button => {
+      if (button.getAttribute('data-section') === sectionId) {
+        button.classList.remove('bg-gray-100', 'text-gray-700');
+        button.classList.add('bg-secondary', 'text-white');
+      } else {
+        button.classList.remove('bg-secondary', 'text-white');
+        button.classList.add('bg-gray-100', 'text-gray-700');
+      }
+    });
+  }
+
+  // Add click handlers
+  document.querySelectorAll('button[data-section]').forEach(button => {
+    button.addEventListener('click', () => {
+      showSection(button.getAttribute('data-section') || 'overview');
+    });
+  });
+
+  // Initialize first section as active
+  document.addEventListener('DOMContentLoaded', () => {
+    showSection('overview');
+  });
+</script>

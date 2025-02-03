@@ -1,0 +1,306 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../../../utils/auth';
+import { getMatchById } from '../../../../utils/matches';
+import { stadiums } from '../../../../utils/stadiums';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+
+const { id } = Astro.params;
+const match = await getMatchById(id);
+
+if (!match) {
+  return Astro.redirect('/admin/matches');
+}
+---
+
+<AdminLayout title="Spiel bearbeiten">
+  <div class="p-6">
+    <div class="mb-8 flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Spiel bearbeiten</h1>
+      <a 
+        href="/admin/matches" 
+        class="text-gray-600 hover:text-secondary flex items-center space-x-1"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Zurück</span>
+      </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm">
+      <form action={`/api/matches/${id}`} method="POST" class="p-6">
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="date">
+                Datum
+              </label>
+              <input
+                type="date"
+                id="date"
+                name="date"
+                value={match.date.split('T')[0]}
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="time">
+                Uhrzeit
+              </label>
+              <input
+                type="time"
+                id="time"
+                name="time"
+                value={match.date.split('T')[1].substring(0, 5)}
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="competition">
+                Wettbewerb
+              </label>
+              <select
+                id="competition"
+                name="competition"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              >
+                <option value="">Bitte wählen</option>
+                <option value="Bundesliga" selected={match.competition === 'Bundesliga'}>Bundesliga</option>
+                <option value="DFB-Pokal" selected={match.competition === 'DFB-Pokal'}>DFB-Pokal</option>
+                <option value="Champions League" selected={match.competition === 'Champions League'}>Champions League</option>
+                <option value="Europa League" selected={match.competition === 'Europa League'}>Europa League</option>
+                <option value="Testspiel" selected={match.competition === 'Testspiel'}>Testspiel</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="venue">
+                Spielort
+              </label>
+              <select
+                id="venue"
+                name="venue"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              >
+                <option value="">Bitte wählen</option>
+                {stadiums.map((stadium) => (
+                  <option value={stadium.id} selected={match.venue === stadium.name}>
+                    {stadium.name} ({stadium.city})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <!-- Stadium Info -->
+            <div class="md:col-span-2 hidden" id="stadium-info">
+              <div class="bg-gray-50 rounded-lg p-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <img id="stadium-image" src="" alt="" class="w-full h-48 object-cover rounded-lg" />
+                  </div>
+                  <div class="md:col-span-2">
+                    <h3 class="text-lg font-bold mb-2" id="stadium-name"></h3>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <div class="text-sm text-gray-500">Stadt</div>
+                        <div class="font-semibold" id="stadium-city"></div>
+                      </div>
+                      <div>
+                        <div class="text-sm text-gray-500">Kapazität</div>
+                        <div class="font-semibold" id="stadium-capacity"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="homeTeam">
+                Heimmannschaft
+              </label>
+              <input
+                type="text"
+                id="homeTeam"
+                name="homeTeam"
+                value={match.homeTeam}
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="awayTeam">
+                Gastmannschaft
+              </label>
+              <input
+                type="text"
+                id="awayTeam"
+                name="awayTeam"
+                value={match.awayTeam}
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+              />
+            </div>
+
+            {match.played && (
+              <>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="homeScore">
+                    Tore Heimmannschaft
+                  </label>
+                  <input
+                    type="number"
+                    id="homeScore"
+                    name="homeScore"
+                    value={match.homeScore}
+                    min="0"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1" for="awayScore">
+                    Tore Gastmannschaft
+                  </label>
+                  <input
+                    type="number"
+                    id="awayScore"
+                    name="awayScore"
+                    value={match.awayScore}
+                    min="0"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          <div class="flex justify-end space-x-4">
+            <a 
+              href="/admin/matches"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Abbrechen
+            </a>
+            <button
+              type="submit"
+              class="bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
+            >
+              Speichern
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // Get DOM elements
+  const venueSelect = document.getElementById('venue');
+  const stadiumInfo = document.getElementById('stadium-info');
+  const stadiumImage = document.getElementById('stadium-image');
+  const stadiumName = document.getElementById('stadium-name');
+  const stadiumCity = document.getElementById('stadium-city');
+  const stadiumCapacity = document.getElementById('stadium-capacity');
+
+  // Stadium data
+  const stadiums = [
+    {
+      id: 'signal-iduna-park',
+      name: 'Signal Iduna Park',
+      city: 'Dortmund',
+      capacity: 81365,
+      image: 'https://interactive.zeit.de/2019/sportdaten/stadien/dortmund.jpg'
+    },
+    {
+      id: 'allianz-arena',
+      name: 'Allianz Arena',
+      city: 'München',
+      capacity: 75000,
+      image: 'https://interactive.zeit.de/2019/sportdaten/stadien/muenchen.jpg'
+    },
+    {
+      id: 'olympiastadion',
+      name: 'Olympiastadion',
+      city: 'Berlin',
+      capacity: 74475,
+      image: 'https://interactive.zeit.de/2019/sportdaten/stadien/berlin.jpg'
+    },
+    {
+      id: 'deutsche-bank-park',
+      name: 'Deutsche Bank Park',
+      city: 'Frankfurt',
+      capacity: 51500,
+      image: 'https://interactive.zeit.de/2019/sportdaten/stadien/frankfurt.jpg'
+    },
+    {
+      id: 'rheinenergiestadion',
+      name: 'RheinEnergieSTADION',
+      city: 'Köln',
+      capacity: 50000,
+      image: 'https://interactive.zeit.de/2019/sportdaten/stadien/koeln.jpg'
+    },
+    {
+      id: 'mercedes-benz-arena',
+      name: 'Mercedes-Benz Arena',
+      city: 'Stuttgart',
+      capacity: 60449,
+      image: 'https://interactive.zeit.de/2019/sportdaten/stadien/stuttgart.jpg'
+    },
+    {
+      id: 'volksparkstadion',
+      name: 'Volksparkstadion',
+      city: 'Hamburg',
+      capacity: 57000,
+      image: 'https://interactive.zeit.de/2019/sportdaten/stadien/hamburg.jpg'
+    },
+    {
+      id: 'veltins-arena',
+      name: 'VELTINS-Arena',
+      city: 'Gelsenkirchen',
+      capacity: 62271,
+      image: 'https://interactive.zeit.de/2019/sportdaten/stadien/gelsenkirchen.jpg'
+    }
+  ];
+
+  // Update stadium info when venue is selected
+  venueSelect.addEventListener('change', (event) => {
+    const stadiumId = event.target.value;
+    
+    if (!stadiumId) {
+      stadiumInfo.classList.add('hidden');
+      return;
+    }
+
+    const stadium = stadiums.find(s => s.id === stadiumId);
+    if (stadium) {
+      stadiumInfo.classList.remove('hidden');
+      stadiumImage.src = stadium.image;
+      stadiumImage.alt = stadium.name;
+      stadiumName.textContent = stadium.name;
+      stadiumCity.textContent = stadium.city;
+      stadiumCapacity.textContent = stadium.capacity.toLocaleString() + ' Zuschauer';
+    }
+  });
+
+  // Show stadium info for initial selection
+  if (venueSelect.value) {
+    venueSelect.dispatchEvent(new Event('change'));
+  }
+</script>

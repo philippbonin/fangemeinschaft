@@ -1,0 +1,47 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { createPool } from 'mariadb';
+
+const pool = createPool({
+  host: process.env.DB_HOST || 'db',
+  user: process.env.DB_USER || 'fangemeinschaft',
+  password: process.env.DB_PASSWORD || 'fangemeinschaft',
+  database: process.env.DB_NAME || 'fangemeinschaft',
+  connectionLimit: 5
+});
+
+const conn = await pool.getConnection();
+try {
+  const coaches = await conn.query(`
+    SELECT * FROM staff 
+    WHERE role IN ('Head Coach', 'Assistant Coach', 'Goalkeeper Coach', 'Fitness Coach')
+    ORDER BY role
+  `);
+} finally {
+  conn.release();
+}
+---
+
+<Layout title="Trainer - Fangemeinschaft">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-4xl font-bold mb-8">Trainerteam</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {coaches.map((coach) => (
+        <div class="bg-white rounded-lg overflow-hidden shadow-md">
+          <div class="aspect-w-3 aspect-h-4">
+            <img 
+              src={coach.image} 
+              alt={coach.name} 
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div class="p-4">
+            <h3 class="font-bold text-lg">{coach.name}</h3>
+            <div class="text-gray-600">{coach.role}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>

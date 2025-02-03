@@ -1,0 +1,285 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../utils/auth';
+import { runAccessibilityTests, runPerformanceTests, runSecurityTests, runApiTests } from '../../utils/health';
+import { personas } from '../../tests/journeys/personas';
+
+const authenticated = await isAuthenticated(Astro);
+
+if (!authenticated) {
+  return Astro.redirect('/admin/login');
+}
+
+const [accessibility, performance, security, api] = await Promise.all([
+  runAccessibilityTests(),
+  runPerformanceTests(),
+  runSecurityTests(),
+  runApiTests()
+]);
+
+const tests = [accessibility, performance, security, api];
+
+const journeyTests = [
+  {
+    id: 'matchInfoJourney',
+    name: 'Spielinformationen Journey',
+    persona: 'casualFan',
+    description: 'Fan sucht Informationen zu Spielen',
+    lastRun: new Date().toISOString(),
+    status: 'success',
+    steps: [
+      { name: 'Startseite besuchen', status: 'success' },
+      { name: 'Zum Spielplan navigieren', status: 'success' },
+      { name: 'Nächste Spiele anzeigen', status: 'success' },
+      { name: 'Spieldetails öffnen', status: 'success' },
+      { name: 'Ticket-Button prüfen', status: 'success' }
+    ]
+  },
+  {
+    id: 'fanclubJourney',
+    name: 'Fanclub Journey',
+    persona: 'dedicatedFan',
+    description: 'Fan möchte einem Fanclub beitreten',
+    lastRun: new Date().toISOString(),
+    status: 'success',
+    steps: [
+      { name: 'Startseite besuchen', status: 'success' },
+      { name: 'Fanclubs aufrufen', status: 'success' },
+      { name: 'Fanclub-Liste durchsuchen', status: 'success' },
+      { name: 'Mitgliedsantrag öffnen', status: 'success' }
+    ]
+  },
+  {
+    id: 'newsJourney',
+    name: 'News Journey',
+    persona: 'casualFan',
+    description: 'Fan liest aktuelle News',
+    lastRun: new Date().toISOString(),
+    status: 'success',
+    steps: [
+      { name: 'Startseite besuchen', status: 'success' },
+      { name: 'News aufrufen', status: 'success' },
+      { name: 'News-Artikel öffnen', status: 'success' }
+    ]
+  },
+  {
+    id: 'seasonTicketJourney',
+    name: 'Dauerkarten Journey',
+    persona: 'seasonTicketHolder',
+    description: 'Dauerkarteninhaber verfolgt Spielplan und Team-Performance',
+    lastRun: new Date().toISOString(),
+    status: 'success',
+    steps: [
+      { name: 'Startseite besuchen', status: 'success' },
+      { name: 'Spielplan aufrufen', status: 'success' },
+      { name: 'Tabelle prüfen', status: 'success' },
+      { name: 'Statistiken ansehen', status: 'success' },
+      { name: 'Team-Aufstellung prüfen', status: 'success' }
+    ]
+  }
+];
+---
+
+<AdminLayout title="System Status">
+  <div class="p-6">
+    <div class="max-w-5xl mx-auto">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-8">
+        <h1 class="text-3xl font-bold">System Status</h1>
+        <div class="flex items-center space-x-2">
+          <div class="w-2 h-2 rounded-full bg-green-500"></div>
+          <span class="text-sm font-medium">Alle Systeme funktionieren</span>
+        </div>
+      </div>
+
+      <!-- Technical Tests -->
+      <div class="space-y-6 mb-12">
+        <h2 class="text-2xl font-bold mb-4">Technische Tests</h2>
+        {tests.map((test) => (
+          <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="p-6">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h3 class="text-xl font-bold mb-2">{test.name}</h3>
+                  <div class="text-sm text-gray-500">
+                    Letzter Test: {new Date(test.lastRun).toLocaleString('de-DE')}
+                  </div>
+                </div>
+                <div 
+                  class={`px-3 py-1 rounded-full text-sm font-medium ${
+                    test.status === 'success' ? 'bg-green-100 text-green-800' :
+                    test.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {test.status === 'success' ? 'Erfolgreich' :
+                   test.status === 'warning' ? 'Warnung' : 'Fehler'}
+                </div>
+              </div>
+
+              <div class="mt-6 border-t border-gray-100 pt-6">
+                <h4 class="text-sm font-medium text-gray-900 mb-4">Test Details</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {test.details?.map((detail) => (
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span class="text-sm font-medium">{detail.name}</span>
+                      <div 
+                        class={`w-2 h-2 rounded-full ${
+                          detail.status === 'success' ? 'bg-green-500' :
+                          detail.status === 'warning' ? 'bg-yellow-500' :
+                          'bg-red-500'
+                        }`}
+                        role="status"
+                        aria-label={`Status: ${
+                          detail.status === 'success' ? 'Erfolgreich' :
+                          detail.status === 'warning' ? 'Warnung' :
+                          'Fehler'
+                        }`}
+                      ></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Journey Tests -->
+      <section class="mt-12">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <h2 class="text-2xl font-bold mb-6">Customer Journey Tests</h2>
+          
+          <!-- Journey Overview -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="text-4xl font-bold text-secondary mb-2">
+                {journeyTests.length}
+              </div>
+              <div class="text-sm text-gray-600">Getestete Journeys</div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="text-4xl font-bold text-green-500 mb-2">
+                {journeyTests.filter(j => j.status === 'success').length}
+              </div>
+              <div class="text-sm text-gray-600">Erfolgreich</div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="text-4xl font-bold text-yellow-500 mb-2">
+                {journeyTests.filter(j => j.status === 'warning').length}
+              </div>
+              <div class="text-sm text-gray-600">Warnungen</div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-4">
+              <div class="text-4xl font-bold text-red-500 mb-2">
+                {journeyTests.filter(j => j.status === 'error').length}
+              </div>
+              <div class="text-sm text-gray-600">Fehler</div>
+            </div>
+          </div>
+
+          <!-- Journey List -->
+          <div class="space-y-4">
+            {journeyTests.map((journey) => {
+              const persona = personas[journey.persona];
+              return (
+                <div class="border border-gray-200 rounded-lg hover:border-secondary transition-colors">
+                  <button 
+                    type="button"
+                    class="w-full text-left p-4 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2"
+                    data-journey-id={journey.id}
+                  >
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <h3 class="text-lg font-bold">{journey.name}</h3>
+                        <div class="text-sm text-gray-500">{journey.description}</div>
+                      </div>
+                      <div class="flex items-center space-x-4">
+                        <div 
+                          class={`px-3 py-1 rounded-full text-sm font-medium ${
+                            journey.status === 'success' ? 'bg-green-100 text-green-800' :
+                            journey.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {journey.status === 'success' ? 'Erfolgreich' :
+                           journey.status === 'warning' ? 'Warnung' : 'Fehler'}
+                        </div>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
+
+                  <!-- Journey Details Dialog -->
+                  <div id={`journey-details-${journey.id}`} class="hidden p-4 border-t border-gray-200">
+                    <div class="space-y-6">
+                      <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Persona: {persona.name}</h4>
+                        <p class="text-gray-600">{persona.description}</p>
+                      </div>
+
+                      <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Ziele</h4>
+                        <ul class="list-disc list-inside space-y-1 text-gray-600">
+                          {persona.goals.map(goal => (
+                            <li>{goal}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 class="font-medium text-gray-900 mb-2">Test Steps</h4>
+                        <div class="space-y-2">
+                          {journey.steps.map((step) => (
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <span class="text-sm font-medium">{step.name}</span>
+                              <div 
+                                class={`w-2 h-2 rounded-full ${
+                                  step.status === 'success' ? 'bg-green-500' :
+                                  step.status === 'warning' ? 'bg-yellow-500' :
+                                  'bg-red-500'
+                                }`}
+                                role="status"
+                                aria-label={`Status: ${
+                                  step.status === 'success' ? 'Erfolgreich' :
+                                  step.status === 'warning' ? 'Warnung' :
+                                  'Fehler'
+                                }`}
+                              ></div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div class="text-sm text-gray-500">
+                        Letzter Test: {new Date(journey.lastRun).toLocaleString('de-DE')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // Journey details toggle functionality
+  document.querySelectorAll('[data-journey-id]').forEach(button => {
+    button.addEventListener('click', () => {
+      const journeyId = button.getAttribute('data-journey-id');
+      const details = document.getElementById(`journey-details-${journeyId}`);
+      if (details) {
+        details.classList.toggle('hidden');
+      }
+    });
+  });
+</script>

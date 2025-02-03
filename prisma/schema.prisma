@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String    @unique
+  password  String
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Session {
+  token     String   @id
+  userEmail String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@map("sessions")
+  @@index([expiresAt])
+}
+
+model News {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @db.Text
+  image     String
+  category  String
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("news")
+  @@index([date])
+}
+
+model Player {
+  id        String   @id @default(uuid())
+  name      String
+  number    Int
+  position  String
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  formations FormationPlayer[]
+
+  @@map("players")
+}
+
+model Match {
+  id          String   @id @default(uuid())
+  date        DateTime
+  competition String
+  homeTeam    String   @map("home_team")
+  awayTeam    String   @map("away_team")
+  homeScore   Int?     @map("home_score")
+  awayScore   Int?     @map("away_score")
+  venue       String
+  played      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  formations     Formation[]
+  nextMatch      NextMatch[]
+  nextMatchHistory NextMatchHistory[]
+
+  @@map("matches")
+  @@index([date])
+}
+
+model Fanclub {
+  id        String   @id @default(uuid())
+  name      String
+  president String
+  phone     String?
+  mobile    String?
+  email     String
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("fanclubs")
+}
+
+model Formation {
+  id        String   @id @default(uuid())
+  matchId   String   @map("match_id")
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  match    Match             @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  players  FormationPlayer[]
+
+  @@map("formations")
+  @@index([matchId])
+}
+
+model FormationPlayer {
+  id          String   @id @default(uuid())
+  formationId String   @map("formation_id")
+  playerId    String   @map("player_id")
+  positionX   Decimal  @map("position_x")
+  positionY   Decimal  @map("position_y")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  formation Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  player    Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@map("formation_players")
+  @@index([formationId])
+  @@index([playerId])
+}
+
+model Asset {
+  id        String   @id @default(uuid())
+  name      String
+  data      Bytes
+  mimeType  String   @map("mime_type")
+  size      Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("assets")
+  @@index([name])
+}
+
+model NextMatch {
+  id             String   @id @default(uuid())
+  matchId        String   @map("match_id")
+  ticketLink     String?  @map("ticket_link")
+  moreInfoContent String?  @map("more_info_content") @db.Text
+  active         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("next_match")
+  @@index([active])
+}
+
+model NextMatchHistory {
+  id              String    @id @default(uuid())
+  matchId         String    @map("match_id")
+  ticketLink      String?   @map("ticket_link")
+  moreInfoContent String?   @map("more_info_content") @db.Text
+  activatedAt     DateTime  @map("activated_at")
+  deactivatedAt   DateTime? @map("deactivated_at")
+  createdAt       DateTime  @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("next_match_history")
+}
+
+model Settings {
+  id               String   @id @default(uuid())
+  logoUrl          String   @map("logo_url")
+  chatEnabled      Boolean  @default(true) @map("chat_enabled")
+  buildLabelEnabled Boolean  @default(true) @map("build_label_enabled")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("settings")
+}

@@ -1,0 +1,62 @@
+---
+interface QuickLink {
+  title: string;
+  description: string;
+  image: string;
+  href: string;
+}
+
+const quickLinks: QuickLink[] = [
+  {
+    title: 'Mannschaft',
+    description: 'Unser Team für die Saison 2023/24',
+    image: 'https://images.unsplash.com/photo-1577471488278-16eec37ffcc2?auto=format&fit=crop&w=800&h=450&q=80',
+    href: '/team/squad'
+  },
+  {
+    title: 'Spielbetrieb',
+    description: 'Aktuelle Spiele und Tabellen',
+    image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&h=450&q=80',
+    href: '/matches/schedule'
+  },
+  {
+    title: 'Fanclubs',
+    description: 'Werde Teil der Fangemeinschaft',
+    image: 'https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=800&h=450&q=80',
+    href: '/fanclubs'
+  },
+  {
+    title: 'Über uns',
+    description: 'Geschichte und Werte des Vereins',
+    image: 'https://images.unsplash.com/photo-1556056504-5c7696c4c28d?auto=format&fit=crop&w=800&h=450&q=80',
+    href: '/about'
+  }
+];
+---
+
+<section class="bg-gray-100 py-12">
+  <div class="container mx-auto px-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {quickLinks.map((link) => (
+        <a href={link.href} class="group h-full">
+          <div class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+            <div class="relative w-full h-0 pb-[56.25%] mb-4 overflow-hidden rounded-lg flex-shrink-0">
+              <img 
+                src={link.image} 
+                alt="" 
+                class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" 
+                loading="lazy"
+              />
+            </div>
+            <div class="flex-grow flex flex-col">
+              <h3 class="text-xl font-bold mb-2 text-primary group-hover:text-secondary transition-colors">
+                {link.title}
+              </h3>
+              <p class="text-gray-600 flex-grow">{link.description}</p>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

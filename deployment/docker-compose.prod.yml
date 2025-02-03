@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.prod
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_USER=${DB_USER:-fangemeinschaft}
+      - DB_PASSWORD=${DB_PASSWORD:-fangemeinschaft}
+      - DB_NAME=${DB_NAME:-fangemeinschaft}
+      - HOST=0.0.0.0
+      - PORT=3000
+    expose:
+      - "3000"
+    volumes:
+      - ../dist:/app/dist
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - npm_network
+      - app-network
+
+  db:
+    image: mariadb:latest
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-rootpassword}
+      - MARIADB_DATABASE=${DB_NAME:-fangemeinschaft}
+      - MARIADB_USER=${DB_USER:-fangemeinschaft}
+      - MARIADB_PASSWORD=${DB_PASSWORD:-fangemeinschaft}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '81:81'
+    environment:
+      DB_MYSQL_HOST: "db"
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: ${DB_USER:-fangemeinschaft}
+      DB_MYSQL_PASSWORD: ${DB_PASSWORD:-fangemeinschaft}
+      DB_MYSQL_NAME: ${DB_NAME:-fangemeinschaft}
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    depends_on:
+      - db
+    networks:
+      - npm_network
+      - app-network
+
+volumes:
+  mariadb-data:
+    driver: local
+  npm_data:
+    driver: local
+  npm_letsencrypt:
+    driver: local
+
+networks:
+  npm_network:
+    external: true
+  app-network:
+    driver: bridge
