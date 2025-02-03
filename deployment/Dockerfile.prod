@@ -11,6 +11,12 @@ RUN npm ci
 # Copy source files
 COPY . .
 
+# Make init script executable
+RUN chmod +x deployment/init-db.sh
+
+# Generate Prisma Client
+RUN npx prisma generate
+
 # Build the application
 RUN npm run build
 
@@ -27,6 +33,10 @@ RUN npm ci --only=production
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/deployment/init-db.sh ./deployment/init-db.sh
+
+# Make init script executable
+RUN chmod +x deployment/init-db.sh
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
@@ -34,4 +44,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 EXPOSE 3000
 
-CMD ["node", "./dist/server/entry.mjs"]
+# Run init script and start the application
+CMD ["sh", "-c", "./deployment/init-db.sh && node ./dist/server/entry.mjs"]

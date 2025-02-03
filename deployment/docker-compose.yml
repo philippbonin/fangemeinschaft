@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -8,54 +6,55 @@ services:
     restart: unless-stopped
     working_dir: /app
     volumes:
-      - ../:/app
+      - ../:/app:cached
       - /app/node_modules
     environment:
       - NODE_ENV=development
       - HOST=0.0.0.0
       - PORT=3000
+      - ASTRO_HOST=0.0.0.0
       - DB_HOST=db
-      - DB_USER=${DB_USER:-fangemeinschaft}
-      - DB_PASSWORD=${DB_PASSWORD:-fangemeinschaft}
-      - DB_NAME=${DB_NAME:-fangemeinschaft}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DATABASE_URL=mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
     ports:
       - "3000:3000"
+    networks:
+      - app-network
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - app-network
+    command: sh -c "npx prisma db push && npm run prisma:seed && npm run dev"
 
   db:
-    image: mariadb:latest
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.mariadb
     restart: unless-stopped
     environment:
-      - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-rootpassword}
-      - MARIADB_DATABASE=${DB_NAME:-fangemeinschaft}
-      - MARIADB_USER=${DB_USER:-fangemeinschaft}
-      - MARIADB_PASSWORD=${DB_PASSWORD:-fangemeinschaft}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - max_allowed_packet=64M
+      - wait_timeout=600
+      - interactive_timeout=600
+      - net_read_timeout=600
+      - net_write_timeout=600
     volumes:
       - mariadb-data:/var/lib/mysql
+      - ./deployment/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysql", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - app-network
-
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ../dist:/usr/share/nginx/html:ro
-    depends_on:
-      - app
-    networks:
-      - app-network
+      start_period: 20s
 
 volumes:
   mariadb-data:

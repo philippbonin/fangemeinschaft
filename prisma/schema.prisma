@@ -26,8 +26,8 @@ model Session {
   createdAt DateTime @default(now())
   expiresAt DateTime
 
-  @@map("sessions")
   @@index([expiresAt])
+  @@map("sessions")
 }
 
 model News {
@@ -40,43 +40,41 @@ model News {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("news")
   @@index([date])
+  @@map("news")
 }
 
 model Player {
-  id        String   @id @default(uuid())
-  name      String
-  number    Int
-  position  String
-  image     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id         String            @id @default(uuid())
+  name       String
+  number     Int
+  position   String
+  image      String
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
   formations FormationPlayer[]
 
   @@map("players")
 }
 
 model Match {
-  id          String   @id @default(uuid())
-  date        DateTime
-  competition String
-  homeTeam    String   @map("home_team")
-  awayTeam    String   @map("away_team")
-  homeScore   Int?     @map("home_score")
-  awayScore   Int?     @map("away_score")
-  venue       String
-  played      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  formations     Formation[]
-  nextMatch      NextMatch[]
+  id               String             @id @default(uuid())
+  date             DateTime
+  competition      String
+  homeTeam         String             @map("home_team")
+  awayTeam         String             @map("away_team")
+  homeScore        Int?               @map("home_score")
+  awayScore        Int?               @map("away_score")
+  venue            String
+  played           Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  formations       Formation[]
+  nextMatch        NextMatch[]
   nextMatchHistory NextMatchHistory[]
 
-  @@map("matches")
   @@index([date])
+  @@map("matches")
 }
 
 model Fanclub {
@@ -94,34 +92,32 @@ model Fanclub {
 }
 
 model Formation {
-  id        String   @id @default(uuid())
-  matchId   String   @map("match_id")
-  active    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String            @id @default(uuid())
+  matchId   String            @map("match_id")
+  active    Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  players   FormationPlayer[]
+  match     Match             @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  match    Match             @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  players  FormationPlayer[]
-
-  @@map("formations")
   @@index([matchId])
+  @@map("formations")
 }
 
 model FormationPlayer {
-  id          String   @id @default(uuid())
-  formationId String   @map("formation_id")
-  playerId    String   @map("player_id")
-  positionX   Decimal  @map("position_x")
-  positionY   Decimal  @map("position_y")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String    @id @default(uuid())
+  formationId String    @map("formation_id")
+  playerId    String    @map("player_id")
+  positionX   Decimal   @map("position_x")
+  positionY   Decimal   @map("position_y")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  player      Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
-  formation Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
-  player    Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
-
-  @@map("formation_players")
   @@index([formationId])
   @@index([playerId])
+  @@map("formation_players")
 }
 
 model Asset {
@@ -133,23 +129,23 @@ model Asset {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("assets")
   @@index([name])
+  @@map("assets")
 }
 
 model NextMatch {
-  id             String   @id @default(uuid())
-  matchId        String   @map("match_id")
-  ticketLink     String?  @map("ticket_link")
+  id              String   @id @default(uuid())
+  matchId         String   @map("match_id")
+  ticketLink      String?  @map("ticket_link")
   moreInfoContent String?  @map("more_info_content") @db.Text
-  active         Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  active          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  match           Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
-
-  @@map("next_match")
   @@index([active])
+  @@index([matchId], map: "next_match_match_id_fkey")
+  @@map("next_match")
 }
 
 model NextMatchHistory {
@@ -160,19 +156,19 @@ model NextMatchHistory {
   activatedAt     DateTime  @map("activated_at")
   deactivatedAt   DateTime? @map("deactivated_at")
   createdAt       DateTime  @default(now())
+  match           Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
-
+  @@index([matchId], map: "next_match_history_match_id_fkey")
   @@map("next_match_history")
 }
 
 model Settings {
-  id               String   @id @default(uuid())
-  logoUrl          String   @map("logo_url")
-  chatEnabled      Boolean  @default(true) @map("chat_enabled")
+  id                String   @id @default(uuid())
+  logoUrl           String   @map("logo_url")
+  chatEnabled       Boolean  @default(true) @map("chat_enabled")
   buildLabelEnabled Boolean  @default(true) @map("build_label_enabled")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@map("settings")
 }

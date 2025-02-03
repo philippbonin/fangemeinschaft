@@ -5,6 +5,10 @@ import node from '@astrojs/node';
 
 export default defineConfig({
   output: 'server',
+  server: {
+    host: true,
+    port: process.env.PORT || 3000  // Fixes the incorrect port syntax
+  },
   adapter: node({
     mode: 'standalone'
   }),
