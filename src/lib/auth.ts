@@ -10,47 +10,49 @@ export interface JWTPayload {
   email: string;
 }
 
+export async function createSession(email: string, password: string): Promise<string | null> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return null;
+
+  const validPassword = await bcrypt.compare(password, user.password);
+  if (!validPassword) return null;
+
+  const token = createToken({ userId: user.id, email: user.email });
+  // Update last login
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLogin: new Date() }
+  });
+  return token;
+}
+
 export async function createToken(payload: JWTPayload): Promise<string> {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
 }
 
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch {
-    return null;
+    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return decoded;
+  } catch (error) {
+    console.error('Invalid or expired token:', error);
+    return null; // Explicitly return null for expired/invalid tokens
   }
 }
 
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
-}
-
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
-}
-
-export async function createSession(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) return null;
-
-  const validPassword = await verifyPassword(password, user.password);
-  if (!validPassword) return null;
-
-  // Create JWT token
-  const token = await createToken({ userId: user.id, email: user.email });
-
-  // Update last login
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { lastLogin: new Date() }
-  });
-
-  return token;
+// Extracts token from Authorization header or cookies
+export function extractToken(request: Request): string | null {
+  const authHeader = request.headers.get('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.split(' ')[1]; // Extract token
+  }
+  const cookies = request.headers.get('cookie');
+  const tokenMatch = cookies?.match(/admin-token=([^;]+)/);
+  return tokenMatch ? tokenMatch[1] : null;
 }
 
 export async function isAuthenticated(request: Request): Promise<boolean> {
-  const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+  const token = extractToken(request);
   if (!token) return false;
 
   const payload = await verifyToken(token);

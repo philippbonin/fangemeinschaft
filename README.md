@@ -56,6 +56,38 @@ Default admin credentials:
 
 ## Project Structure
 
+1️⃣ Core Application Logic
+📌 src/lib/auth.ts → Authentication handling with JWT
+📌 src/lib/middleware.ts → Prisma middleware and request flow
+📌 src/lib/prisma.ts → Prisma client configuration
+📌 src/lib/errors.ts → Error management
+📌 src/lib/validation.ts → Validation schemas (Zod)
+📌 src/lib/cache.ts (if caching is used) → Handles Redis or in-memory caching (if applicable)
+2️⃣ Middleware Files
+📌 src/middleware/errorHandler.ts → Global error handling
+📌 src/middleware/validation.ts → Middleware validation logic
+📌 src/middleware/rateLimit.ts → Rate-limiting logic for security
+3️⃣ API Routes
+📌 src/pages/api/auth/login.ts → Handles user authentication (JWT generation)
+📌 src/pages/api/auth/logout.ts → Clears authentication state
+📌 src/pages/api/news/index.ts → Example API for handling protected CRUD operations
+📌 src/pages/api/events/index.ts (if recently added) → Handles event management
+📌 src/pages/api/settings/index.ts → Application settings management (protected route)
+4️⃣ Astro-Specific Components & Layouts
+📌 src/layouts/Layout.astro → Base layout for application
+📌 src/layouts/AdminLayout.astro → Layout for admin-protected pages
+📌 src/components/react/CookieConsent.tsx → Ensures cookie compliance with JWT handling
+5️⃣ Prisma Schema & Database
+📌 prisma/schema.prisma → Prisma ORM schema (DB structure)
+📌 prisma/seed.ts → Initial database seeding logic
+📌 prisma/migrations/ → Database migrations for schema changes
+6️⃣ Configuration & Deployment
+📌 astro.config.mjs → Astro app configuration
+📌 deployment/nginx/conf.d/default.conf → Nginx reverse proxy settings
+📌 deployment/docker-compose.yml → Docker setup including MariaDB and app container
+📌 .env (if possible, sanitized version) → Environment variables setup for DB and JWT
+
+
 ```
 /
 ├── deployment/          # Deployment configurations
@@ -178,13 +210,6 @@ Detailed documentation is available in the `src/docs` directory:
 - [Migrations Guide](src/docs/migrations.md)
 - [Prisma Guide](src/docs/prisma.md)
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests
-5. Submit a pull request
 
 ## License
 

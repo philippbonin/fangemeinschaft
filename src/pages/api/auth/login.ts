@@ -8,23 +8,18 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const password = formData.get('password') as string;
     
     const token = await createSession(email, password);
-    
-    if (!token) {
-      return redirect('/admin/login?error=unauthorized', 302);
-    }
+    if (!token) return redirect('/admin/login?error=unauthorized');
 
-    // Set cookie with proper attributes
     cookies.set('admin-token', token, {
       path: '/',
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 8, // 8 hours
+      maxAge: 8 * 60 * 60, // 8 hours
     });
 
-    return redirect('/admin', 302);
+    return redirect('/admin');
   } catch (error) {
-    console.error('Login error:', error);
-    return redirect('/admin/login?error=unauthorized', 302);
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 };
