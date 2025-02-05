@@ -87,6 +87,16 @@ Default admin credentials:
 📌 deployment/docker-compose.yml → Docker setup including MariaDB and app container
 📌 .env (if possible, sanitized version) → Environment variables setup for DB and JWT
 
+Application
+    ↓
+src/lib/prisma.ts (Prisma Client)
+    ↓
+prisma/schema.prisma (Schema Definition)
+    ↓
+.env (DATABASE_URL)
+    ↓
+Database
+
 
 ```
 /
