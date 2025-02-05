@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { validateRequest } from '../middleware/validation'; // Used in validation middleware
+import { isAuthenticated } from './auth';
 
 // ✅ Logging Middleware
 export function withLogging(params: any, next: (params: any) => Promise<any>) {
@@ -17,44 +17,30 @@ export function withLogging(params: any, next: (params: any) => Promise<any>) {
     });
 }
 
-// ✅ Authentication Middleware (For Prisma)
+// ✅ Authentication Middleware
 export async function withAuthentication(params: any, next: (params: any) => Promise<any>) {
-  if (['create', 'update', 'delete'].includes(params.action)) {
-    const userToken = params.args?.token;
-    if (!userToken) throw new Error('Unauthorized');
-
-    const user = await verifyToken(userToken);
-    if (!user) throw new Error('Invalid or expired token');
-
-    params.args.data.modifiedBy = user.userId; // Track changes
+  // Skip authentication for read operations and non-authenticated models
+  if (['findUnique', 'findFirst', 'findMany'].includes(params.action)) {
+    return next(params);
   }
+
+  // Get request from context
+  const request = params.args?._ctx?.req;
+  if (!request) {
+    throw new Error('Request context required for authenticated operations');
+  }
+
+  // Verify authentication
+  const isAuth = await isAuthenticated(request);
+  if (!isAuth) {
+    throw new Error('Unauthorized');
+  }
+
+  // Remove _ctx from args before passing to next middleware
+  const { _ctx, ...args } = params.args;
+  params.args = args;
+
   return next(params);
-}
-
-// ✅ Audit Logging Middleware
-export async function withAuditLog(params: any, next: (params: any) => Promise<any>) {
-  const prisma = new PrismaClient();
-  const before =
-    params.action.startsWith('update') || params.action === 'delete'
-      ? await prisma[params.model].findUnique({ where: params.args.where })
-      : null;
-
-  const result = await next(params);
-
-  if (['create', 'update', 'delete'].includes(params.action)) {
-    await prisma.auditLog.create({
-      data: {
-        model: params.model,
-        action: params.action,
-        recordId: result?.id,
-        before: before ? JSON.stringify(before) : null,
-        after: result ? JSON.stringify(result) : null,
-        timestamp: new Date(),
-      },
-    });
-  }
-
-  return result;
 }
 
 // ✅ Rate Limit Middleware
@@ -62,7 +48,7 @@ export function withRateLimit(limit: number, window: number) {
   const rateLimits = new Map<string, { count: number; resetTime: number }>();
 
   return async (params: any, next: (params: any) => Promise<any>) => {
-    const token = params.args?.token || 'anonymous';
+    const token = params.args?._ctx?.req?.headers?.get('Authorization')?.split(' ')[1] || 'anonymous';
     const entry = rateLimits.get(token) || { count: 0, resetTime: Date.now() + window };
 
     if (entry.count >= limit && Date.now() < entry.resetTime) {
@@ -77,6 +63,12 @@ export function withRateLimit(limit: number, window: number) {
 
 // ✅ Soft Delete Middleware
 export function withSoftDelete(params: any, next: (params: any) => Promise<any>) {
+  // Skip soft delete for assets - use hard delete instead
+  if (params.model === 'Asset') {
+    return next(params);
+  }
+
+  // Apply soft delete for other models
   if (params.action === 'delete') {
     params.action = 'update';
     params.args.data = { deleted: true, deletedAt: new Date() };
@@ -88,16 +80,24 @@ export function withSoftDelete(params: any, next: (params: any) => Promise<any>)
   return next(params);
 }
 
-// ✅ Request Validation Middleware (Using Imported `validateRequest`)
-export function withValidation(schema: any) {
-  return async (params: any, next: (params: any) => Promise<any>) => {
-    try {
-      if (params.args?.data) {
-        params.args.data = await validateRequest(schema);
-      }
-      return next(params);
-    } catch (error) {
-      throw new Error('Validation failed');
+// ✅ Cache Middleware
+export async function withCache(params: any, next: (params: any) => Promise<any>) {
+  const cache = new Map();
+  const CACHE_TTL = 60 * 1000; // 1 minute
+
+  if (params.action === 'findUnique' || params.action === 'findFirst') {
+    const key = `${params.model}-${JSON.stringify(params.args)}`;
+    const cached = cache.get(key);
+    
+    if (cached && cached.timestamp > Date.now() - CACHE_TTL) {
+      return cached.data;
     }
-  };
+
+    const result = await next(params);
+    if (result) {
+      cache.set(key, { data: result, timestamp: Date.now() });
+    }
+    return result;
+  }
+  return next(params);
 }

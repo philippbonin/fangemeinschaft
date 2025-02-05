@@ -20,7 +20,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     if (settings) {
       await prisma.settings.update({
         where: { id: settings.id },
-        data
+        data,
+        _ctx: { req: request } // Pass request context to Prisma
       });
     } else {
       await prisma.settings.create({ data });

@@ -13,7 +13,11 @@ export const POST: APIRoute = async ({ params, request, redirect }) => {
       return new Response('News ID is required', { status: 400 });
     }
 
-    await prisma.news.delete({ where: { id } });
+    await prisma.news.delete({ 
+      where: { id },
+      _ctx: { req: request } // Pass request context to Prisma
+    });
+    
     return redirect('/admin/news');
   } catch (error) {
     console.error('Error deleting news:', error);

@@ -1,8 +1,14 @@
 import type { APIRoute } from 'astro';
+import { isAuthenticated } from '../../../lib/auth';
 import { createAsset } from '../../../utils/assets';
+import { handlePrismaError } from '../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   try {
+    if (!await isAuthenticated(request)) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const name = formData.get('name') as string;
@@ -19,13 +25,13 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     await createAsset({
       name,
       data: buffer,
-      mime_type: file.type || 'application/octet-stream',
+      mimeType: file.type || 'application/octet-stream',
       size: file.size
-    });
+    }, request);
 
     return redirect('/admin/assets');
   } catch (error) {
     console.error('Error uploading asset:', error);
-    return new Response('Error uploading asset', { status: 500 });
+    return handlePrismaError(error, 'Asset', 'create');
   }
 };
