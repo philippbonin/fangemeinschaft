@@ -1,72 +1,128 @@
-import { pool } from '../config/database';
-import { hashPassword } from './auth';
-import type { User } from '../types/user';
+import { prisma } from '../lib/prisma';
+import type { User } from '@prisma/client';
+import { hashPassword } from '../lib/auth';
 
 export async function getUsers(): Promise<User[]> {
-  const conn = await pool.getConnection();
-  try {
-    return await conn.query(
-      'SELECT id, firstName, lastName, email, lastLogin, created_at, updated_at FROM users'
-    );
-  } finally {
-    conn.release();
-  }
+  return prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      lastLogin: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  });
 }
 
 export async function getUserById(id: string): Promise<User | null> {
-  const conn = await pool.getConnection();
-  try {
-    const [user] = await conn.query(
-      'SELECT id, firstName, lastName, email, lastLogin, created_at, updated_at FROM users WHERE id = ?',
-      [id]
-    );
-    return user || null;
-  } finally {
-    conn.release();
-  }
-}
-
-export async function createUser(user: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
-  const conn = await pool.getConnection();
-  try {
-    const hashedPassword = await hashPassword(user.password);
-    const result = await conn.query(
-      'INSERT INTO users (id, firstName, lastName, email, password) VALUES (UUID(), ?, ?, ?, ?)',
-      [user.firstName, user.lastName, user.email, hashedPassword]
-    );
-    return { id: result.insertId, ...user };
-  } finally {
-    conn.release();
-  }
-}
-
-export async function updateUser(id: string, user: Partial<User>): Promise<User | null> {
-  const conn = await pool.getConnection();
-  try {
-    let query = 'UPDATE users SET firstName = ?, lastName = ?, email = ?';
-    const params = [user.firstName, user.lastName, user.email];
-
-    if (user.password) {
-      query += ', password = ?';
-      params.push(await hashPassword(user.password));
+  return prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      lastLogin: true,
+      createdAt: true,
+      updatedAt: true
     }
+  });
+}
 
-    query += ' WHERE id = ?';
-    params.push(id);
+export async function getUserByEmail(email: string): Promise<User | null> {
+  return prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      lastLogin: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  });
+}
 
-    await conn.query(query, params);
-    return getUserById(id);
-  } finally {
-    conn.release();
+export async function createUser(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}): Promise<User> {
+  const hashedPassword = await hashPassword(data.password);
+  
+  return prisma.user.create({
+    data: {
+      ...data,
+      password: hashedPassword
+    },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      lastLogin: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  });
+}
+
+export async function updateUser(id: string, data: {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+}): Promise<User | null> {
+  const updateData: any = { ...data };
+  
+  if (data.password) {
+    updateData.password = await hashPassword(data.password);
   }
+
+  return prisma.user.update({
+    where: { id },
+    data: updateData,
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      lastLogin: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  });
+}
+
+export async function updateLastLogin(id: string): Promise<User | null> {
+  return prisma.user.update({
+    where: { id },
+    data: {
+      lastLogin: new Date()
+    },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      lastLogin: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  });
 }
 
 export async function deleteUser(id: string): Promise<boolean> {
-  const conn = await pool.getConnection();
   try {
-    const result = await conn.query('DELETE FROM users WHERE id = ?', [id]);
-    return result.affectedRows > 0;
-  } finally {
-    conn.release();
+    await prisma.user.delete({
+      where: { id }
+    });
+    return true;
+  } catch {
+    return false;
   }
 }

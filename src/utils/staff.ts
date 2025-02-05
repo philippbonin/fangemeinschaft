@@ -1,65 +1,62 @@
-import { pool } from '../config/database';
-
-export interface Staff {
-  id?: string;
-  name: string;
-  role: string;
-  image: string;
-  created_at?: string;
-  updated_at?: string;
-}
+// src/utils/staff.ts
+import { prisma } from '../lib/prisma';
+import type { Staff } from '@prisma/client';
 
 export async function getStaff(): Promise<Staff[]> {
-  const conn = await pool.getConnection();
-  try {
-    return await conn.query('SELECT * FROM staff ORDER BY role, name');
-  } finally {
-    conn.release();
-  }
+  return prisma.staff.findMany({
+    orderBy: [
+      { role: 'asc' },
+      { name: 'asc' }
+    ]
+  });
 }
 
 export async function getStaffById(id: string): Promise<Staff | null> {
-  const conn = await pool.getConnection();
-  try {
-    const [staff] = await conn.query('SELECT * FROM staff WHERE id = ?', [id]);
-    return staff || null;
-  } finally {
-    conn.release();
-  }
+  return prisma.staff.findUnique({
+    where: { id }
+  });
 }
 
-export async function createStaff(staff: Omit<Staff, 'id' | 'created_at' | 'updated_at'>): Promise<Staff> {
-  const conn = await pool.getConnection();
-  try {
-    const result = await conn.query(
-      'INSERT INTO staff (id, name, role, image) VALUES (UUID(), ?, ?, ?)',
-      [staff.name, staff.role, staff.image]
-    );
-    return { id: result.insertId, ...staff };
-  } finally {
-    conn.release();
-  }
+export async function createStaff(data: Omit<Staff, 'id' | 'createdAt' | 'updatedAt'>): Promise<Staff> {
+  return prisma.staff.create({
+    data
+  });
 }
 
-export async function updateStaff(id: string, staff: Partial<Staff>): Promise<Staff | null> {
-  const conn = await pool.getConnection();
-  try {
-    await conn.query(
-      'UPDATE staff SET name = ?, role = ?, image = ? WHERE id = ?',
-      [staff.name, staff.role, staff.image, id]
-    );
-    return getStaffById(id);
-  } finally {
-    conn.release();
-  }
+export async function updateStaff(id: string, data: Partial<Staff>): Promise<Staff | null> {
+  return prisma.staff.update({
+    where: { id },
+    data
+  });
 }
 
 export async function deleteStaff(id: string): Promise<boolean> {
-  const conn = await pool.getConnection();
   try {
-    const result = await conn.query('DELETE FROM staff WHERE id = ?', [id]);
-    return result.affectedRows > 0;
-  } finally {
-    conn.release();
+    await prisma.staff.delete({
+      where: { id }
+    });
+    return true;
+  } catch {
+    return false;
   }
+}
+
+export async function getStaffByRole(role: string): Promise<Staff[]> {
+  return prisma.staff.findMany({
+    where: { role },
+    orderBy: { name: 'asc' }
+  });
+}
+
+export async function getStaffCount(): Promise<number> {
+  return prisma.staff.count();
+}
+
+export async function getStaffRoles(): Promise<string[]> {
+  const staff = await prisma.staff.findMany({
+    select: { role: true },
+    distinct: ['role'],
+    orderBy: { role: 'asc' }
+  });
+  return staff.map(s => s.role);
 }
