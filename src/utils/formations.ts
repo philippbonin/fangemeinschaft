@@ -1,5 +1,8 @@
-import { prisma } from '../lib/prisma';
+// src/utils/formations.ts
+import prisma from '../lib/prisma';
 import type { Formation, FormationPlayer } from '@prisma/client';
+import type { Request } from 'astro';
+import type { PrismaContext, PrismaArgs } from '../types/prisma';
 
 export async function getFormations(): Promise<Formation[]> {
   return prisma.formation.findMany({
@@ -11,6 +14,7 @@ export async function getFormations(): Promise<Formation[]> {
         }
       }
     },
+    where: { deleted: false },
     orderBy: { createdAt: 'desc' }
   });
 }
@@ -29,23 +33,23 @@ export async function getFormationById(id: string): Promise<Formation | null> {
   });
 }
 
-export async function createFormation(data: {
-  matchId: string;
-  players: Array<{
-    playerId: string;
-    positionX: number;
-    positionY: number;
-  }>;
-}): Promise<Formation> {
-  return prisma.formation.create({
+export async function createFormation(
+  data: {
+    matchId: string;
+    players: Array<{
+      playerId: string;
+      positionX: number;
+      positionY: number;
+    }>;
+  },
+  request: Request
+): Promise<Formation> {
+  const ctx: PrismaContext = { req: request };
+  const args: PrismaArgs = {
     data: {
       matchId: data.matchId,
       players: {
-        create: data.players.map(p => ({
-          playerId: p.playerId,
-          positionX: p.positionX,
-          positionY: p.positionY
-        }))
+        create: data.players
       }
     },
     include: {
@@ -55,46 +59,49 @@ export async function createFormation(data: {
           player: true
         }
       }
-    }
-  });
+    },
+    _ctx: ctx
+  };
+  
+  return prisma.formation.create(args);
 }
 
-export async function updateFormation(id: string, data: {
-  players?: Array<{
-    playerId: string;
-    positionX: number;
-    positionY: number;
-  }>;
-  active?: boolean;
-}): Promise<Formation> {
+export async function updateFormation(
+  id: string,
+  data: {
+    players?: Array<{
+      playerId: string;
+      positionX: number;
+      positionY: number;
+    }>;
+    active?: boolean;
+  },
+  request: Request
+): Promise<Formation> {
+  const ctx: PrismaContext = { req: request };
+
   return prisma.$transaction(async (tx) => {
     if (data.players) {
-      // Delete existing player positions
       await tx.formationPlayer.deleteMany({
         where: { formationId: id }
       });
 
-      // Create new player positions
       await tx.formationPlayer.createMany({
         data: data.players.map(p => ({
           formationId: id,
-          playerId: p.playerId,
-          positionX: p.positionX,
-          positionY: p.positionY
+          ...p
         }))
       });
     }
 
     if (data.active) {
-      // Deactivate all other formations
       await tx.formation.updateMany({
         where: { id: { not: id } },
         data: { active: false }
       });
     }
 
-    // Update formation
-    return tx.formation.update({
+    const args: PrismaArgs = {
       where: { id },
       data: { active: data.active },
       include: {
@@ -104,29 +111,42 @@ export async function updateFormation(id: string, data: {
             player: true
           }
         }
-      }
-    });
+      },
+      _ctx: ctx
+    };
+
+    return tx.formation.update(args);
   });
 }
 
-export async function deleteFormation(id: string): Promise<boolean> {
+export async function deleteFormation(id: string, request: Request): Promise<boolean> {
   try {
-    await prisma.formation.delete({ where: { id } });
+    const ctx: PrismaContext = { req: request };
+    const args: PrismaArgs = {
+      where: { id },
+      _ctx: ctx
+    };
+
+    await prisma.formation.delete(args);
     return true;
   } catch {
     return false;
   }
 }
 
-export async function setActiveFormation(id: string): Promise<void> {
+export async function setActiveFormation(id: string, request: Request): Promise<void> {
+  const ctx: PrismaContext = { req: request };
+  
   await prisma.$transaction([
     prisma.formation.updateMany({
       where: { active: true },
-      data: { active: false }
+      data: { active: false },
+      _ctx: ctx
     }),
     prisma.formation.update({
       where: { id },
-      data: { active: true }
+      data: { active: true },
+      _ctx: ctx
     })
   ]);
 }

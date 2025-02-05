@@ -1,8 +1,10 @@
+// src/pages/api/team/[id]/delete.ts
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../../lib/prisma';
 import { isAuthenticated } from '../../../../lib/auth';
+import { deletePlayer } from '../../../../utils/team';
+import { handlePrismaError } from '../../../../lib/errors';
 
-export const POST: APIRoute = async ({ params, request, redirect }) => {
+export const POST: APIRoute = async ({ request, params, redirect }) => {
   try {
     if (!await isAuthenticated(request)) {
       return new Response('Unauthorized', { status: 401 });
@@ -13,10 +15,9 @@ export const POST: APIRoute = async ({ params, request, redirect }) => {
       return new Response('Player ID is required', { status: 400 });
     }
 
-    await prisma.player.delete({ where: { id } });
+    await deletePlayer(id, request);
     return redirect('/admin/team');
   } catch (error) {
-    console.error('Error deleting player:', error);
-    return new Response('Error deleting player', { status: 500 });
+    return handlePrismaError(error, 'Player', 'delete');
   }
 };

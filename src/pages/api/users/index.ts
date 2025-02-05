@@ -1,6 +1,7 @@
+// src/pages/api/users/index.ts
 import type { APIRoute } from 'astro';
 import { isAuthenticated } from '../../../lib/auth';
-import { updateSettings } from '../../../utils/settings';
+import { createUser } from '../../../utils/users';
 import { handlePrismaError } from '../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
@@ -11,14 +12,15 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
     const formData = await request.formData();
     const data = {
-      logoUrl: formData.get('logoUrl') as string,
-      chatEnabled: formData.get('chatEnabled') === 'true',
-      buildLabelEnabled: formData.get('buildLabelEnabled') === 'true'
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
+      email: formData.get('email') as string,
+      password: formData.get('password') as string
     };
 
-    await updateSettings(data, request);
-    return redirect('/admin/settings');
+    await createUser(data, request);
+    return redirect('/admin/users');
   } catch (error) {
-    return handlePrismaError(error, 'Settings', 'update');
+    return handlePrismaError(error, 'User', 'create');
   }
 };

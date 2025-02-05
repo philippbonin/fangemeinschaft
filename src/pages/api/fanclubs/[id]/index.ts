@@ -1,6 +1,8 @@
+// src/pages/api/fanclubs/[id]/index.ts
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../../lib/prisma';
 import { isAuthenticated } from '../../../../lib/auth';
+import { updateFanclub } from '../../../../utils/fanclubs';
+import { handlePrismaError } from '../../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, params, redirect }) => {
   try {
@@ -23,14 +25,9 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
       website: formData.get('website') as string
     };
 
-    await prisma.fanclub.update({
-      where: { id },
-      data
-    });
-
+    await updateFanclub(id, data, request);
     return redirect('/admin/fanclubs');
   } catch (error) {
-    console.error('Error updating fanclub:', error);
-    return new Response('Error updating fanclub', { status: 500 });
+    return handlePrismaError(error, 'Fanclub', 'update');
   }
 };

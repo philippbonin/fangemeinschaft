@@ -1,7 +1,7 @@
-// src/pages/api/news/[id]/index.ts
+// src/pages/api/team/[id]/index.ts
 import type { APIRoute } from 'astro';
 import { isAuthenticated } from '../../../../lib/auth';
-import { updateNews } from '../../../../utils/news';
+import { updatePlayer } from '../../../../utils/team';
 import { handlePrismaError } from '../../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, params, redirect }) => {
@@ -12,20 +12,20 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
 
     const { id } = params;
     if (!id) {
-      return new Response('News ID is required', { status: 400 });
+      return new Response('Player ID is required', { status: 400 });
     }
 
     const formData = await request.formData();
     const data = {
-      title: formData.get('title') as string,
-      content: formData.get('content') as string,
-      image: formData.get('image') as string,
-      category: formData.get('category') as string
+      name: formData.get('name') as string,
+      number: parseInt(formData.get('number') as string),
+      position: formData.get('position') as string,
+      image: formData.get('image') as string
     };
 
-    await updateNews(id, data, request);
-    return redirect('/admin/news');
+    await updatePlayer(id, data, request);
+    return redirect('/admin/team');
   } catch (error) {
-    return handlePrismaError(error, 'News', 'update');
+    return handlePrismaError(error, 'Player', 'update');
   }
 };

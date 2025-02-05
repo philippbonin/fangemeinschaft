@@ -1,6 +1,7 @@
+// src/pages/api/team/index.ts
 import type { APIRoute } from 'astro';
 import { isAuthenticated } from '../../../lib/auth';
-import { updateSettings } from '../../../utils/settings';
+import { createPlayer } from '../../../utils/team';
 import { handlePrismaError } from '../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
@@ -11,14 +12,15 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
     const formData = await request.formData();
     const data = {
-      logoUrl: formData.get('logoUrl') as string,
-      chatEnabled: formData.get('chatEnabled') === 'true',
-      buildLabelEnabled: formData.get('buildLabelEnabled') === 'true'
+      name: formData.get('name') as string,
+      number: parseInt(formData.get('number') as string),
+      position: formData.get('position') as string,
+      image: formData.get('image') as string
     };
 
-    await updateSettings(data, request);
-    return redirect('/admin/settings');
+    await createPlayer(data, request);
+    return redirect('/admin/team');
   } catch (error) {
-    return handlePrismaError(error, 'Settings', 'update');
+    return handlePrismaError(error, 'Player', 'create');
   }
 };

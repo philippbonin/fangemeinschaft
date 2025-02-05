@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { isAuthenticated } from '../../../lib/auth';
-import { updateSettings } from '../../../utils/settings';
+import { createFormation } from '../../../utils/formations';
 import { handlePrismaError } from '../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
@@ -10,15 +10,17 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     }
 
     const formData = await request.formData();
+    const positions = JSON.parse(formData.get('positions') as string);
+    const matchId = formData.get('matchId') as string;
+
     const data = {
-      logoUrl: formData.get('logoUrl') as string,
-      chatEnabled: formData.get('chatEnabled') === 'true',
-      buildLabelEnabled: formData.get('buildLabelEnabled') === 'true'
+      matchId,
+      players: positions
     };
 
-    await updateSettings(data, request);
-    return redirect('/admin/settings');
+    await createFormation(data, request);
+    return redirect('/admin/formation');
   } catch (error) {
-    return handlePrismaError(error, 'Settings', 'update');
+    return handlePrismaError(error, 'Formation', 'create');
   }
 };

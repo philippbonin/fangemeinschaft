@@ -1,8 +1,10 @@
+// src/pages/api/matches/[id]/delete.ts
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../../lib/prisma';
 import { isAuthenticated } from '../../../../lib/auth';
+import { deleteMatch } from '../../../../utils/matches';
+import { handlePrismaError } from '../../../../lib/errors';
 
-export const POST: APIRoute = async ({ params, request, redirect }) => {
+export const POST: APIRoute = async ({ request, params, redirect }) => {
   try {
     if (!await isAuthenticated(request)) {
       return new Response('Unauthorized', { status: 401 });
@@ -13,10 +15,9 @@ export const POST: APIRoute = async ({ params, request, redirect }) => {
       return new Response('Match ID is required', { status: 400 });
     }
 
-    await prisma.match.delete({ where: { id } });
+    await deleteMatch(id, request);
     return redirect('/admin/matches');
   } catch (error) {
-    console.error('Error deleting match:', error);
-    return new Response('Error deleting match', { status: 500 });
+    return handlePrismaError(error, 'Match', 'delete');
   }
 };

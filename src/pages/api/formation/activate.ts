@@ -1,6 +1,8 @@
+// src/pages/api/formation/activate.ts
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../lib/prisma';
 import { isAuthenticated } from '../../../lib/auth';
+import { setActiveFormation } from '../../../utils/formations';
+import { handlePrismaError } from '../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   try {
@@ -15,20 +17,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       return new Response('Formation ID is required', { status: 400 });
     }
 
-    await prisma.$transaction([
-      prisma.formation.updateMany({
-        where: { active: true },
-        data: { active: false }
-      }),
-      prisma.formation.update({
-        where: { id },
-        data: { active: true }
-      })
-    ]);
-
+    await setActiveFormation(id, request);
     return redirect('/admin/formation');
   } catch (error) {
-    console.error('Error activating formation:', error);
-    return new Response('Error activating formation', { status: 500 });
+    return handlePrismaError(error, 'Formation', 'update');
   }
 };

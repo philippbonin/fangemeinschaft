@@ -1,7 +1,6 @@
-// src/pages/api/fanclubs/[id]/delete.ts
 import type { APIRoute } from 'astro';
+import { prisma } from '../../../../lib/prisma';
 import { isAuthenticated } from '../../../../lib/auth';
-import { deleteFanclub } from '../../../../utils/fanclubs';
 import { handlePrismaError } from '../../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, params, redirect }) => {
@@ -12,12 +11,18 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
 
     const { id } = params;
     if (!id) {
-      return new Response('Fanclub ID is required', { status: 400 });
+      return new Response('Formation ID is required', { status: 400 });
     }
 
-    await deleteFanclub(id, request);
-    return redirect('/admin/fanclubs');
+    await prisma.formation.delete({ 
+      where: { id },
+      data: {
+        _ctx: { req: request }
+      }
+    });
+    
+    return redirect('/admin/formation');
   } catch (error) {
-    return handlePrismaError(error, 'Fanclub', 'delete');
+    return handlePrismaError(error, 'Formation', 'delete');
   }
 };
