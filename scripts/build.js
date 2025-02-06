@@ -1,7 +1,17 @@
-import { execSync } from 'child_process';
 import fetch from 'node-fetch';
 import fs from 'fs/promises';
 import path from 'path';
+import { execSync } from 'child_process';
+
+// Get environment type from command-line arguments (default to 'dev')
+const envType = process.argv[2] === 'prod' ? 'prod' : 'dev';
+
+function executeGitCommand(command) {
+    return execSync(command).toString('utf8').trim();
+}
+
+const branch = executeGitCommand('git rev-parse --abbrev-ref HEAD');
+const commit = executeGitCommand('git rev-parse --short=25 HEAD');
 
 // Generate timestamp in YYYYMMDDHHMMSS format
 const timestamp = new Date().toISOString()
@@ -10,7 +20,7 @@ const timestamp = new Date().toISOString()
 
 // Set environment variable
 process.env.BUILD_TIMESTAMP = timestamp;
-console.log(`Building with timestamp: ${timestamp}`);
+console.log(`Building with timestamp: ${timestamp} for environment: ${envType}`);
 
 // Adjectives and nouns for fallback name generation
 const adjectives = ['swift', 'bright', 'calm', 'wise', 'bold', 'brave', 'kind', 'pure', 'warm', 'cool'];
@@ -22,12 +32,34 @@ function generateFallbackName() {
   return `${adjective}_${noun}`;
 }
 
-function getBuildNameSync() {
+async function getBuildName() {
   try {
-    // Use synchronous fallback for Docker builds
-    return generateFallbackName();
+    // Fetch both adjective and noun from API Ninjas
+    const [adjResponse, nounResponse] = await Promise.all([
+      fetch('https://api.api-ninjas.com/v1/randomword?type=adjective', {
+        headers: {
+          'X-Api-Key': 'eyRZ1Bo/gNuI/XW0QX7zuw==MSuNRz3TT908wovV'
+        }
+      }),
+      fetch('https://api.api-ninjas.com/v1/randomword?type=noun', {
+        headers: {
+          'X-Api-Key': 'eyRZ1Bo/gNuI/XW0QX7zuw==MSuNRz3TT908wovV'
+        }
+      })
+    ]);
+    
+    if (!adjResponse.ok || !nounResponse.ok) {
+      throw new Error('Failed to fetch random words');
+    }
+    
+    const [adjData, nounData] = await Promise.all([
+      adjResponse.json(),
+      nounResponse.json()
+    ]);
+
+    return `${adjData.word}_${nounData.word}`.toLowerCase();
   } catch (error) {
-    console.warn('Using fallback build name');
+    console.warn('Failed to fetch build name from API, using fallback:', error);
     return generateFallbackName();
   }
 }
@@ -36,32 +68,43 @@ async function saveBuildInfo(buildName) {
   const buildInfo = {
     timestamp,
     buildName,
-    createdAt: new Date().toISOString()
+    branch,
+    commit,
+    environment: envType
   };
 
-  // Save to dist/client directory
-  const distClientDir = path.join(process.cwd(), 'dist', 'client');
-  
-  // Ensure directory exists
-  await fs.mkdir(distClientDir, { recursive: true });
-  
-  // Write build info
-  await fs.writeFile(
-    path.join(distClientDir, 'build-info.json'),
-    JSON.stringify(buildInfo, null, 2)
-  );
+  // Define output directory based on environment
+  const outputDir = envType === 'prod'
+    ? path.join(process.cwd(), 'dist', 'client')
+    : path.join(process.cwd(), 'public');
 
-  console.log('Build info saved to dist/client/build-info.json');
+  // Ensure directory exists
+  await fs.mkdir(outputDir, { recursive: true });
+
+  // Define file path
+  const filePath = path.join(outputDir, 'build-info.json');
+
+  try {
+    // 🔹 Check if directory is writable
+    try {
+      await fs.access(outputDir, fs.constants.W_OK);
+    } catch {
+      throw new Error(`Directory is not writable: ${outputDir}`);
+    }
+
+    // 🔹 Write the file
+    await fs.writeFile(filePath, JSON.stringify(buildInfo, null, 2));
+    console.log(`Build info saved to ${filePath}`);
+  } catch (error) {
+    console.error("Error writing file:", error.message);
+  }
 }
 
-// Main build process
 async function build() {
   try {
-    const buildName = getBuildNameSync();
+    // Get build name
+    const buildName = await getBuildName();
     console.log(`Using build name: ${buildName}`);
-    
-    // Export build name for other processes
-    process.env.BUILD_NAME = buildName;
     
     // Save build info
     await saveBuildInfo(buildName);

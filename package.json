@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev --host --port 3000",
     "start": "astro dev",
-    "build": "astro build && node scripts/build.js",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",

@@ -7,7 +7,7 @@ const settings = await getSettings();
 if (!settings.buildLabelEnabled) return null;
 
 // Initialize with default values
-const defaultBuildInfo = { timestamp: 'unknown', buildName: 'unnamed' };
+const defaultBuildInfo = { commit: 'unknown', buildName: 'unnamed' };
 
 // Define a list of vibrant colors with good contrast for text
 const colors = [
@@ -38,9 +38,9 @@ function getColorForBuild(buildName: string) {
   data-colors={JSON.stringify(colors)}
 >
   <div class="flex items-center space-x-2">
-    <span id="buildTimestamp" class="font-mono">{defaultBuildInfo.timestamp}</span>
-    <span class="text-black/60">|</span>
     <span id="buildName" class="font-medium">{defaultBuildInfo.buildName}</span>
+    <span class="text-black/60">|</span>
+    <span id="buildCommit" class="font-medium">{defaultBuildInfo.commit}</span>  
   </div>
 </div>
 
@@ -54,10 +54,10 @@ function getColorForBuild(buildName: string) {
         
         // Update DOM elements
         const label = document.getElementById('buildLabel');
-        const timestamp = document.getElementById('buildTimestamp');
         const name = document.getElementById('buildName');
+        const commit = document.getElementById('buildCommit');
         
-        if (label && timestamp && name) {
+        if (label && commit && name) {
           // Get colors array from data attribute
           const colors = JSON.parse(label.dataset.colors || '[]');
           
@@ -69,7 +69,7 @@ function getColorForBuild(buildName: string) {
           label.style.backgroundColor = `${color}90`; // 90 for 90% opacity
           
           // Update content
-          timestamp.textContent = buildInfo.timestamp;
+          commit.textContent = buildInfo.commit;
           name.textContent = buildInfo.buildName;
           
           // Show the label
