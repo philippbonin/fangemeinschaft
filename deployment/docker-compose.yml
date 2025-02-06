@@ -44,7 +44,6 @@ services:
       - net_write_timeout=600
     volumes:
       - mariadb-data:/var/lib/mysql
-      - ./deployment/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     ports:
       - "3306:3306"
     networks:
