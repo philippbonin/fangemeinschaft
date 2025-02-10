@@ -1,32 +1,41 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
-# Wait for database to be ready
-echo "Waiting for database to be ready..."
+if [ -f "/var/lib/mysql/db_initialized" ]; then
+    echo "Database already initialized. Skipping setup."
+    exit 0
+fi
+
+echo "Waiting for MariaDB to be fully ready..."
+
 max_retries=30
 retry_count=0
 
-while ! mariadb-admin ping -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASSWORD" --silent; do
+while ! mysqladmin ping -h"localhost" --socket="/run/mysqld/mysqld.sock" -u root -p"$MYSQL_ROOT_PASSWORD" --silent; do
     retry_count=$((retry_count+1))
     if [ $retry_count -eq $max_retries ]; then
-        echo "Failed to connect to database after $max_retries attempts"
+        echo "Failed to connect to MariaDB after $max_retries attempts."
         exit 1
     fi
     echo "Attempt $retry_count of $max_retries: Database not ready yet..."
     sleep 2
 done
 
-echo "Database is ready. Running Prisma seed..."
+# Ensure the database exists
+echo "Creating database if not exists..."
+mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
 
-# Generate Prisma Client (only done once here)
-# npx prisma generate
+# Ensure the user exists
+echo "Ensuring user exists..."
+mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';
+GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;"
 
-# Run migrations
-#npx prisma migrate deploy
+echo "User '$DB_USER' now has full access to '$DB_NAME'."
+echo "Database is fully ready!"
 
-#Run seed if in development
-if [ "$NODE_ENV" = "development" ]; then
-    echo "Development environment detected. Running seeds..."
-    npx prisma db seed
-fi
-
-echo "Database initialization completed successfully."
+# Signal thas DB is ready!
+touch /var/lib/mysql/db_ready
+chown mysql:mysql /var/lib/mysql/db_ready  # Ensure correct ownership
+chmod 644 /var/lib/mysql/db_ready 

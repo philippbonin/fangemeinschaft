@@ -1,23 +1,17 @@
 services:
   app:
+    container_name: fangemeinschaft-app
     build:
       context: ..
       dockerfile: deployment/Dockerfile
     restart: unless-stopped
+    env_file:
+      - ../.env
     working_dir: /app
     volumes:
-      - ../:/app:cached
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - HOST=0.0.0.0
-      - PORT=3000
-      - ASTRO_HOST=0.0.0.0
-      - DB_HOST=db
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - DATABASE_URL=mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
+      - ..:/app
+      - node_modules:/app/node_modules
+      - mariadb-data:/var/lib/mysql
     ports:
       - "3000:3000"
     networks:
@@ -25,37 +19,32 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "npx prisma db push --accept-data-loss && npm run prisma:seed && npm run dev"
+    command: ["/bin/sh", "-c", "sh deployment/start-app.sh"]
 
   db:
+    container_name: fangemeinschaft-db
     build:
       context: ..
       dockerfile: deployment/Dockerfile.mariadb
     restart: unless-stopped
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=${DB_USER}
-      - MYSQL_PASSWORD=${DB_PASSWORD}
-      - max_allowed_packet=64M
-      - wait_timeout=600
-      - interactive_timeout=600
-      - net_read_timeout=600
-      - net_write_timeout=600
+    env_file:
+      - ../.env
     volumes:
       - mariadb-data:/var/lib/mysql
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     ports:
       - "3306:3306"
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysql", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
+      test: ["CMD", "mysql", "-h", "${DB_HOST}", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 20s
 
 volumes:
+  node_modules:
   mariadb-data:
     driver: local
 
