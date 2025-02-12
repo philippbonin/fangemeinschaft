@@ -1,0 +1,101 @@
+services:
+  # Nginx Proxy Manager (NPM)
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    depends_on:
+      - npm-db
+    networks:
+      - app-network
+    ports:
+      - '80:80'    # Public HTTP Port
+      - '443:443'  # Public HTTPS Port
+      - '81:81'    # NPM Admin Web Interface
+    env_file:
+      - ../../.env.production
+    environment:
+      DB_MYSQL_HOST: "npm-db"
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: "npm"
+      DB_MYSQL_PASSWORD: "npm_password"
+      DB_MYSQL_NAME: "npm_db"
+    volumes:
+      - ../../data/npm:/data
+      - ../../data/npm-letsencrypt:/etc/letsencrypt
+
+  # Database for Nginx Proxy Manager
+  npm-db:
+    image: 'jc21/mariadb-aria:latest'
+    restart: unless-stopped
+    networks:
+      - app-network
+    env_file:
+      - ../../.env.production
+    environment:
+      MYSQL_ROOT_PASSWORD: 'npm_root_password'
+      MYSQL_DATABASE: 'npm_db'
+      MYSQL_USER: 'npm'
+      MYSQL_PASSWORD: 'npm_password'
+    volumes:
+      - ../../data/npm-db:/var/lib/mysql
+
+  app:
+    container_name: fangemeinschaft-prod-app
+    build:
+      context: ../..
+      dockerfile: deployment/production/Dockerfile.prod
+    restart: unless-stopped
+    networks:
+      - app-network
+    env_file:
+      - ../../.env.production
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../../data/app:/app/data  # Preserve app data
+      - ../../logs:/app/logs  # Preserve logs
+      - ../../uploads:/app/uploads  # Keep uploads safe
+      - ../../configs:/app/configs  # Preserve configuration files
+      - ../../cache:/app/cache  # Persistent cache storage
+      - ../../tests:/app/tests  # Preserve test results
+      - ../../dist:/app/dist  # Preserve production build
+      - ../../prisma:/app/prisma
+      - app-db-data:/var/lib/mysql  # Keeps data persistent
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["/bin/sh", "-c", "sh deployment/database/start-app.sh"]
+
+  # Database for Your App
+  db:
+    container_name: fangemeinschaft-prod-db
+    build:
+      context: ../..
+      dockerfile: deployment/database/Dockerfile.mariadb
+    restart: unless-stopped
+    env_file:
+      - ../../.env.production
+    volumes:
+      - app-db-data:/var/lib/mysql  # Keeps data persistent
+      - ../database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+
+volumes:
+  npm-db-data:
+    driver: local
+  app-db-data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

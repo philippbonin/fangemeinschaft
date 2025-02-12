@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { withLogging, withAuthentication, withAuditLog, withRateLimit, withCache, withSoftDelete } from './prismaMiddleware';
+import { withLogging, withAuthentication, withRateLimit, withCache, withSoftDelete } from './prismaMiddleware';
 
 declare global {
   var prisma: PrismaClient | undefined;
@@ -17,7 +17,6 @@ export const prisma = globalThis.prisma || new PrismaClient({
 // Attach middlewares
 prisma.$use(withLogging);
 prisma.$use(withAuthentication);
-prisma.$use(withAuditLog);
 prisma.$use(withRateLimit(100, 60 * 60)); // 100 requests per hour
 prisma.$use(withCache);
 prisma.$use(withSoftDelete);

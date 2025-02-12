@@ -23,33 +23,18 @@ async function seed() {
       where: { id: '1' },
       update: {},
       create: {
-        logoUrl: '/fangemeinschaftLogo.png',
+        logoUrl: '/Logo/defaultLogo.png',
         chatEnabled: true,
         buildLabelEnabled: true
       }
     });
 
-    // Create sample players
-    const players = [
-      { id:"1", name: 'Max Müller', number: 1, position: 'Goalkeeper', image: '/players/max-mueller.jpg' },
-      { id:"2", name: 'Thomas Schmidt', number:2, position: 'Defender', image: '/players/thomas-schmidt.jpg' },
-      { id:"3", name: 'Lars Weber', number: 4, position: 'Defender', image: '/players/lars-weber.jpg' }
-    ];
-
-    for (const player of players) {
-      await prisma.player.upsert({
-        where: { id: player.id },
-        update: {},
-        create: player
-      });
-    }
-
     // Create sample news
     const news = [
       {
-        title: 'Wichtiger Sieg im Heimspiel',
-        content: 'Die Mannschaft konnte einen wichtigen 2:1 Sieg erringen...',
-        image: '/news/victory.jpg',
+        title: 'Anpfiff für die neue Website von Fangemeinschaft.de!',
+        content: 'Liebe Fußballfans, Vereinsfreunde und Supporter,\n\n der Schlusspfiff für die alte Seite ist ertönt – und jetzt startet der große Anstoß in eine neue digitale Ära! \n Fangemeinschaft.de hat ein frisches Trikot übergestreift und präsentiert sich in einem völlig neuen Design. Ab sofort findet ihr auf unserer neuen Website alles, was das Fanherz höherschlagen lässt – übersichtlicher, moderner und noch näher am Spielgeschehen! \n\n ⚽ Spielplan & Events: Verpasst keine Fan-Treffen, Auswärtsfahrten oder Sonderaktionen mehr! \n 📢 Fan-News & Blog: Exklusive Geschichten rund um eure Vereine und die Fankultur. \n\n Schaut vorbei, klickt euch durch und gebt uns gerne Feedback – denn eure Meinung zählt! \nBesucht uns unter www.fangemeinschaft.de und erlebt die neue Heimat der Fanszene. \n\n Gemeinsam auf den Rängen, gemeinsam online – wir sind bereit für die nächste Saison! \n Auf die Fankultur – und auf euch! \n\n Euer Team von Fangemeinschaft.de',
+        image: '/News/defaultNews.jpg',
         category: 'Match Report',
         date: new Date()
       }
@@ -57,37 +42,6 @@ async function seed() {
 
     for (const item of news) {
       await prisma.news.create({ data: item });
-    }
-
-    // Create sample matches
-    const matches = [
-      {
-        date: new Date('2024-03-15T15:30:00Z'),
-        competition: 'Bundesliga',
-        homeTeam: 'SC Freiburg',
-        awayTeam: 'Bayern München',
-        venue: 'Europa-Park Stadion',
-        played: false
-      }
-    ];
-
-    for (const match of matches) {
-      await prisma.match.create({ data: match });
-    }
-
-    // Create sample fanclubs
-    const fanclubs = [
-      {
-        name: 'Breisgau Brasilianer',
-        president: 'Hans Schmidt',
-        phone: '0761-123456',
-        email: 'info@breisgau-brasilianer.de',
-        website: 'https://breisgau-brasilianer.de'
-      }
-    ];
-
-    for (const fanclub of fanclubs) {
-      await prisma.fanclub.create({ data: fanclub });
     }
 
     console.log('Database seeded successfully');
@@ -100,3 +54,4 @@ async function seed() {
 }
 
 seed();
+

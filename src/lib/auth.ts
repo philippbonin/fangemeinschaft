@@ -13,6 +13,13 @@ export interface JWTPayload {
   email: string;
 }
 
+export function hashPassword(password: string): string {
+  const bcrypt = require("bcryptjs");
+  const saltRounds = 10;
+  return bcrypt.hashSync(password, saltRounds);
+}
+
+
 export async function createSession(email: string, password: string): Promise<string | null> {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return null;

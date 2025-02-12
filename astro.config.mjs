@@ -7,7 +7,7 @@ export default defineConfig({
   output: 'server',
   server: {
     host: true,
-    port: process.env.PORT || 3000  // Fixes the incorrect port syntax
+    port: process.env.PORT || 3000
   },
   adapter: node({
     mode: 'standalone'

@@ -1,7 +1,7 @@
 {
-  "timestamp": "20250205231443",
-  "buildName": "puerile_pomp",
-  "branch": "MakeItRun",
-  "commit": "2053669e47d1180e49448437e",
+  "timestamp": "N/A",
+  "buildName": "development on localhost:3001",
+  "branch": "N/A",
+  "commit": "Live reloading!",
   "environment": "dev"
 }
