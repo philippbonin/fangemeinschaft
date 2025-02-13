@@ -34,12 +34,12 @@ async function getBuildName() {
     const [adjResponse, nounResponse] = await Promise.all([
       fetch('https://api.api-ninjas.com/v1/randomword?type=adjective', {
         headers: {
-          'X-Api-Key': 'eyRZ1Bo/gNuI/XW0QX7zuw==MSuNRz3TT908wovV'
+          'X-Api-Key': 'ENTER API KEY'
         }
       }),
       fetch('https://api.api-ninjas.com/v1/randomword?type=noun', {
         headers: {
-          'X-Api-Key': 'eyRZ1Bo/gNuI/XW0QX7zuw==MSuNRz3TT908wovV'
+          'X-Api-Key': 'ENTER API KEY'
         }
       })
     ]);
