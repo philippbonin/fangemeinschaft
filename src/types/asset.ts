@@ -2,7 +2,7 @@ export interface Asset {
   id: string;
   name: string;
   data: Buffer;
-  mime_type: string;
+  mimetype: string;
   size: number;
   created_at: string;
   updated_at: string;
@@ -11,8 +11,8 @@ export interface Asset {
 export interface AssetResponse {
   id: string;
   name: string;
-  url: string;
-  mime_type: string;
+  data: Buffer;
+  mimetype: string;
   size: number;
   created_at: string;
   updated_at: string;

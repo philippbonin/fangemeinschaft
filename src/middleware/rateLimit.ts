@@ -1,22 +1,18 @@
-import type { APIRoute } from 'astro';
-import { getCache, setCache } from '../lib/cache';
+const rateLimits = new Map<string, { count: number; resetTime: number }>();
 
-export function withRateLimit(
-  limit: number,
-  window: number
-): (handler: APIRoute) => APIRoute {
-  return (handler: APIRoute) => {
-    return async (context) => {
-      const ip = context.request.headers.get('x-forwarded-for') || 'unknown';
-      const key = `ratelimit:${ip}`;
-      
-      const current = await getCache<number>(key) || 0;
-      if (current >= limit) {
-        return new Response('Too Many Requests', { status: 429 });
-      }
-      
-      await setCache(key, current + 1, window);
-      return handler(context);
-    };
+export function withRateLimit(limit: number, window: number) {
+  return async (params: any, next: (params: any) => Promise<any>) => {
+    const token = extractToken(params.request) || 'anonymous';
+    
+    const entry = rateLimits.get(token) || { count: 0, resetTime: Date.now() + window };
+    if (entry.count >= limit && Date.now() < entry.resetTime) {
+      throw new Error('Rate limit exceeded');
+    }
+
+    entry.count++;
+    rateLimits.set(token, entry);
+
+    return next(params);
   };
+  
 }

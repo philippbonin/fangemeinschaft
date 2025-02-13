@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../lib/prisma';
 import { isAuthenticated } from '../../../lib/auth';
+import { createFanclub } from '../../../utils/fanclubs';
+import { handlePrismaError } from '../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   try {
@@ -18,10 +19,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       website: formData.get('website') as string
     };
 
-    await prisma.fanclub.create({ data });
+    await createFanclub(data, request);
     return redirect('/admin/fanclubs');
   } catch (error) {
-    console.error('Error creating fanclub:', error);
-    return new Response('Error creating fanclub', { status: 500 });
+    return handlePrismaError(error, 'Fanclub', 'create');
   }
 };

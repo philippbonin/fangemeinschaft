@@ -1,14 +1,31 @@
-// src/pages/api/news/index.ts
-import { validateRequest } from '../../../middleware/validation';
-import { newsSchema } from '../../../lib/validation';
+// src/pages/api/news/[id]/index.ts
+import type { APIRoute } from 'astro';
+import { isAuthenticated } from '../../../../lib/auth';
+import { updateNews } from '../../../../utils/news';
+import { handlePrismaError } from '../../../../lib/errors';
 
-export const POST: APIRoute = validateRequest(newsSchema)(async ({ request, locals }) => {
+export const POST: APIRoute = async ({ request, params, redirect }) => {
   try {
-    const data = locals.validatedData;
-    await prisma.news.create({ data });
-    return new Response(null, { status: 201 });
+    if (!await isAuthenticated(request)) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    const { id } = params;
+    if (!id) {
+      return new Response('News ID is required', { status: 400 });
+    }
+
+    const formData = await request.formData();
+    const data = {
+      title: formData.get('title') as string,
+      content: formData.get('content') as string,
+      image: formData.get('image') as string,
+      category: formData.get('category') as string
+    };
+
+    await updateNews(id, data, request);
+    return redirect('/admin/news');
   } catch (error) {
-    console.error('Error creating news:', error);
-    return new Response('Error creating news', { status: 500 });
+    return handlePrismaError(error, 'News', 'update');
   }
-});
+};

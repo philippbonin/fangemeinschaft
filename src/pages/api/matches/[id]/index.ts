@@ -1,6 +1,8 @@
+// src/pages/api/matches/[id]/index.ts
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../../lib/prisma';
 import { isAuthenticated } from '../../../../lib/auth';
+import { updateMatch } from '../../../../utils/matches';
+import { handlePrismaError } from '../../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, params, redirect }) => {
   try {
@@ -25,14 +27,9 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
       played: formData.has('homeScore') && formData.has('awayScore')
     };
 
-    await prisma.match.update({
-      where: { id },
-      data
-    });
-
+    await updateMatch(id, data, request);
     return redirect('/admin/matches');
   } catch (error) {
-    console.error('Error updating match:', error);
-    return new Response('Error updating match', { status: 500 });
+    return handlePrismaError(error, 'Match', 'update');
   }
 };

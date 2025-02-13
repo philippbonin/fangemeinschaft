@@ -2,7 +2,7 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import ConfirmDialog from '../../../components/ConfirmDialog.astro';
 import { isAuthenticated } from '../../../utils/auth';
-import { getAssets } from '../../../utils/assets';
+import { getAssets, getAssetUrl } from '../../../utils/assets';
 
 const authenticated = await isAuthenticated(Astro);
 
@@ -32,11 +32,19 @@ const assets = await getAssets();
       {assets.map((asset) => (
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">
           <div class="aspect-w-16 aspect-h-9">
-            <img 
-              src={asset.url} 
-              alt={asset.name}
-              class="w-full h-full object-cover"
-            />
+            {asset.mimeType.startsWith('image/') ? (
+              <img 
+                src={getAssetUrl(asset.id)} 
+                alt={asset.name}
+                class="w-full h-full object-cover"
+              />
+            ) : (
+              <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+            )}
           </div>
           <div class="p-4">
             <div class="flex items-center justify-between">
@@ -45,13 +53,16 @@ const assets = await getAssets();
                   {asset.name}
                 </h3>
                 <p class="text-sm text-gray-500">
-                  {new Intl.DateTimeFormat('de-DE').format(new Date(asset.created_at))}
+                  {new Intl.DateTimeFormat('de-DE').format(asset.createdAt)}
+                </p>
+                <p class="text-sm text-gray-500">
+                  {(asset.size / 1024).toFixed(1)} KB
                 </p>
               </div>
               <div class="flex space-x-2">
                 <button
                   type="button"
-                  onclick={`navigator.clipboard.writeText('${asset.url}').then(() => alert('URL kopiert!'))`}
+                  onclick={`navigator.clipboard.writeText('${getAssetUrl(asset.id)}').then(() => alert('URL kopiert!'))`}
                   class="text-gray-400 hover:text-gray-500"
                   title="URL kopieren"
                 >

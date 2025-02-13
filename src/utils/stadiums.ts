@@ -17,5 +17,7 @@ export const stadiums: Stadium[] = [
     capacity: 81365,
     image: 'https://interactive.zeit.de/2019/sportdaten/stadien/dortmund.jpg'
   },
+
+  
   // ... rest of the stadiums remain unchanged
 ];

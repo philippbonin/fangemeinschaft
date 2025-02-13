@@ -1,6 +1,8 @@
+// src/pages/api/news/index.ts
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../lib/prisma';
 import { isAuthenticated } from '../../../lib/auth';
+import { createNews } from '../../../utils/news';
+import { handlePrismaError } from '../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   try {
@@ -17,10 +19,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       date: new Date()
     };
 
-    await prisma.news.create({ data });
+    await createNews(data, request);
     return redirect('/admin/news');
   } catch (error) {
-    console.error('Error creating news:', error);
-    return new Response('Error creating news', { status: 500 });
+    return handlePrismaError(error, 'News', 'create');
   }
 };

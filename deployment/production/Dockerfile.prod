@@ -1,0 +1,52 @@
+# Use Debian-based Node.js image (includes OpenSSL 1.1)
+FROM node:18-bullseye AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Verify OpenSSL version (should be 1.1.x)
+RUN openssl version -a
+
+# Copy package files
+COPY package*.json ./
+
+# Copy Prisma schema and seed script
+COPY prisma /app/prisma/
+
+# Install dependencies
+RUN npm ci
+
+# Copy source files
+COPY . .
+
+# Make init scripts executable
+RUN chmod +x deployment/database/init-db.sh
+RUN chmod +x deployment/database/start-app.sh
+RUN chmod +x deployment/database/check-user.js
+
+# Production stage
+FROM node:18-bullseye
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma  
+COPY --from=builder /app/deployment/database/init-db.sh ./deployment/database/init-db.sh
+COPY --from=builder /app/deployment/database/start-app.sh ./deployment/database/start-app.sh
+COPY --from=builder /app/deployment/database/check-user.js ./deployment/database/check-user.js
+
+# Make init scripts executable
+RUN chmod +x deployment/database/init-db.sh
+RUN chmod +x deployment/database/start-app.sh
+RUN chmod +x deployment/database/check-user.js
+
+# Expose the application port
+EXPOSE 3000
+

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../lib/prisma';
 import { isAuthenticated } from '../../../lib/auth';
+import { createMatch } from '../../../utils/matches';
+import { handlePrismaError } from '../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   try {
@@ -18,10 +19,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       played: false
     };
 
-    await prisma.match.create({ data });
+    await createMatch(data, request);
     return redirect('/admin/matches');
   } catch (error) {
-    console.error('Error creating match:', error);
-    return new Response('Error creating match', { status: 500 });
+    return handlePrismaError(error, 'Match', 'create');
   }
 };

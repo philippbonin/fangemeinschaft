@@ -1,9 +1,13 @@
-import { prisma } from '../lib/prisma';
+// src/utils/news.ts
+import prisma from '../lib/prisma';
 import type { News } from '@prisma/client';
+import type { Request } from 'astro';
+import type { PrismaContext, PrismaArgs } from '../types/prisma';
 
 export async function getNews(): Promise<News[]> {
   return prisma.news.findMany({
-    orderBy: { date: 'desc' }
+    orderBy: { date: 'desc' },
+    where: { deleted: false }
   });
 }
 
@@ -13,20 +17,43 @@ export async function getNewsById(id: string): Promise<News | null> {
   });
 }
 
-export async function createNews(data: Omit<News, 'id' | 'createdAt' | 'updatedAt'>): Promise<News> {
-  return prisma.news.create({ data });
+export async function createNews(
+  data: Omit<News, 'id' | 'createdAt' | 'updatedAt' | 'deleted' | 'deletedAt'>,
+  request: Request
+): Promise<News> {
+  const ctx: PrismaContext = { req: request };
+  const args: PrismaArgs = {
+    data,
+    _ctx: ctx
+  };
+  
+  return prisma.news.create(args);
 }
 
-export async function updateNews(id: string, data: Partial<News>): Promise<News | null> {
-  return prisma.news.update({
+export async function updateNews(
+  id: string, 
+  data: Partial<News>,
+  request: Request
+): Promise<News | null> {
+  const ctx: PrismaContext = { req: request };
+  const args: PrismaArgs = {
     where: { id },
-    data
-  });
+    data,
+    _ctx: ctx
+  };
+
+  return prisma.news.update(args);
 }
 
-export async function deleteNews(id: string): Promise<boolean> {
+export async function deleteNews(id: string, request: Request): Promise<boolean> {
   try {
-    await prisma.news.delete({ where: { id } });
+    const ctx: PrismaContext = { req: request };
+    const args: PrismaArgs = {
+      where: { id },
+      _ctx: ctx
+    };
+
+    await prisma.news.delete(args);
     return true;
   } catch {
     return false;

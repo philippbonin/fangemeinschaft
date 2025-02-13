@@ -1,7 +1,7 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { isAuthenticated } from '../../../utils/auth';
-import { getAssets } from '../../../utils/assets';
+import { getAssets, getAssetUrl } from '../../../utils/assets';
 
 const authenticated = await isAuthenticated(Astro);
 
@@ -14,7 +14,7 @@ const assets = await getAssets();
 console.log('Loaded assets:', assets); // Debug log
 
 const categories = ['Team News', 'Match Report', 'Club News', 'Press Release'];
-const imageAssets = assets.filter(asset => asset.mime_type.startsWith('image/'));
+const imageAssets = assets.filter(asset => asset.mimeType.startsWith('image/'));
 ---
 
 <AdminLayout title="News erstellen">
@@ -81,18 +81,17 @@ const imageAssets = assets.filter(asset => asset.mime_type.startsWith('image/'))
             
             <div class="grid grid-cols-4 gap-4 mt-4 max-h-60 overflow-y-auto p-2 bg-gray-50 rounded-lg">
               {imageAssets.map((asset) => (
-                <button
-                  type="button"
-                  class="image-select-btn relative aspect-square bg-white rounded-lg overflow-hidden border-2 border-transparent hover:border-secondary transition-colors"
-                  data-url={asset.url}
-                >
-                  <img src={asset.url} alt={asset.name} class="w-full h-full object-cover" />
-                  <div class="absolute top-1 right-1 bg-secondary text-white rounded-full p-0.5 hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                  </div>
-                </button>
+                        <button
+                        type="button"
+                        class="image-select-btn relative aspect-square bg-white rounded-lg overflow-hidden border-2 border-transparent hover:border-secondary transition-colors"
+                        data-url={getAssetUrl(asset.id)}>
+                        <img  src={getAssetUrl(asset.id)} alt={asset.name} class="w-full h-full object-cover"/>
+                        <div class="absolute top-1 right-1 bg-secondary text-white rounded-full p-0.5 hidden">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                          </svg>
+                        </div>
+                      </button>
               ))}
             </div>
           </div>

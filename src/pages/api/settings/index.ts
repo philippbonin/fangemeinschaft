@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../lib/prisma';
 import { isAuthenticated } from '../../../lib/auth';
+import { updateSettings } from '../../../utils/settings';
+import { handlePrismaError } from '../../../lib/errors';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   try {
@@ -15,20 +16,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       buildLabelEnabled: formData.get('buildLabelEnabled') === 'true'
     };
 
-    const settings = await prisma.settings.findFirst();
-    
-    if (settings) {
-      await prisma.settings.update({
-        where: { id: settings.id },
-        data
-      });
-    } else {
-      await prisma.settings.create({ data });
-    }
-
+    await updateSettings(data, request);
     return redirect('/admin/settings');
   } catch (error) {
-    console.error('Error updating settings:', error);
-    return new Response('Error updating settings', { status: 500 });
+    return handlePrismaError(error, 'Settings', 'update');
   }
 };

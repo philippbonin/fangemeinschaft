@@ -1,8 +1,10 @@
+// src/pages/api/news/[id]/delete.ts
 import type { APIRoute } from 'astro';
-import { prisma } from '../../../../lib/prisma';
 import { isAuthenticated } from '../../../../lib/auth';
+import { deleteNews } from '../../../../utils/news';
+import { handlePrismaError } from '../../../../lib/errors';
 
-export const POST: APIRoute = async ({ params, request, redirect }) => {
+export const POST: APIRoute = async ({ request, params, redirect }) => {
   try {
     if (!await isAuthenticated(request)) {
       return new Response('Unauthorized', { status: 401 });
@@ -13,10 +15,9 @@ export const POST: APIRoute = async ({ params, request, redirect }) => {
       return new Response('News ID is required', { status: 400 });
     }
 
-    await prisma.news.delete({ where: { id } });
+    await deleteNews(id, request);
     return redirect('/admin/news');
   } catch (error) {
-    console.error('Error deleting news:', error);
-    return new Response('Error deleting news', { status: 500 });
+    return handlePrismaError(error, 'News', 'delete');
   }
 };

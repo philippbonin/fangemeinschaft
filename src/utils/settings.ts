@@ -1,11 +1,15 @@
-import { prisma } from '../lib/prisma';
+// src/utils/settings.ts
+import prisma from '../lib/prisma';
 import type { Settings } from '@prisma/client';
+import type { Request } from 'astro';
+import type { PrismaContext, PrismaArgs } from '../types/prisma';
 
 export async function getSettings(): Promise<Settings> {
-  const settings = await prisma.settings.findFirst();
+  const settings = await prisma.settings.findFirst({
+    where: { deleted: false }
+  });
   
   if (!settings) {
-    // Create default settings if none exist
     return prisma.settings.create({
       data: {
         logoUrl: '/fangemeinschaftLogo.png',
@@ -18,21 +22,31 @@ export async function getSettings(): Promise<Settings> {
   return settings;
 }
 
-export async function updateSettings(data: Partial<Settings>): Promise<Settings> {
-  const settings = await prisma.settings.findFirst();
+export async function updateSettings(
+  data: Partial<Settings>,
+  request: Request
+): Promise<Settings> {
+  const ctx: PrismaContext = { req: request };
+  const settings = await prisma.settings.findFirst({
+    where: { deleted: false }
+  });
   
   if (!settings) {
-    return prisma.settings.create({
+    const args: PrismaArgs = {
       data: {
         logoUrl: data.logoUrl || '/fangemeinschaftLogo.png',
         chatEnabled: data.chatEnabled ?? true,
         buildLabelEnabled: data.buildLabelEnabled ?? true
-      }
-    });
+      },
+      _ctx: ctx
+    };
+    return prisma.settings.create(args);
   }
 
-  return prisma.settings.update({
+  const args: PrismaArgs = {
     where: { id: settings.id },
-    data
-  });
+    data,
+    _ctx: ctx
+  };
+  return prisma.settings.update(args);
 }

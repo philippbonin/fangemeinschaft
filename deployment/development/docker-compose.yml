@@ -1,0 +1,53 @@
+services:
+  app:
+    container_name: fangemeinschaft-dev-app
+    build:
+      context: ../..
+      dockerfile: deployment/development/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+    working_dir: /app
+    volumes:
+      - ../..:/app
+      - node_modules:/app/node_modules
+      - mariadb-data:/var/lib/mysql
+    ports:
+      - "3001:3001"
+    networks:
+      - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["/bin/sh", "-c", "sh deployment/database/start-app.sh"]
+
+  db:
+    container_name: fangemeinschaft-dev-db
+    build:
+      context: ../..
+      dockerfile: deployment/database/Dockerfile.mariadb
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ../database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    ports:
+      - "3307:3307"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "${DB_HOST}", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  node_modules:
+  mariadb-data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

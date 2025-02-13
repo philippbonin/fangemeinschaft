@@ -17,9 +17,11 @@ export const GET: APIRoute = async ({ params }) => {
     return new Response(asset.data, {
       status: 200,
       headers: {
-        'Content-Type': asset.mime_type,
+        'Content-Type': asset.mimeType,
         'Content-Length': asset.size.toString(),
-        'Cache-Control': 'public, max-age=31536000'
+        'Cache-Control': 'public, max-age=31536000',
+        'ETag': `"${id}"`,
+        'Last-Modified': asset.updatedAt.toUTCString()
       }
     });
   } catch (error) {

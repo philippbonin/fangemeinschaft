@@ -2,7 +2,7 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { isAuthenticated } from '../../../utils/auth';
 import { getSettings } from '../../../utils/settings';
-import { getAssets } from '../../../utils/assets';
+import { getAssets, getAssetUrl} from '../../../utils/assets';
 
 const authenticated = await isAuthenticated(Astro);
 
@@ -13,9 +13,9 @@ if (!authenticated) {
 // Get settings and assets from database
 const settings = await getSettings();
 const assets = await getAssets();
-console.log('Loaded assets:', assets); // Debug log
 
-const imageAssets = assets.filter(asset => asset.mime_type.startsWith('image/'));
+// Filter for image assets
+const imageAssets = assets.filter(asset => asset.mimeType.startsWith('image/'));
 ---
 
 <AdminLayout title="Einstellungen">
@@ -44,15 +44,14 @@ const imageAssets = assets.filter(asset => asset.mime_type.startsWith('image/'))
                 {imageAssets.map((asset) => (
                   <button
                     type="button"
-                    class="image-select-btn relative aspect-square bg-white rounded-lg overflow-hidden border-2 hover:border-secondary transition-colors"
                     class:list={[
-                      'border-2',
-                      settings.logoUrl === asset.url ? 'border-secondary' : 'border-transparent'
+                      'image-select-btn relative aspect-square bg-white rounded-lg overflow-hidden border-2 hover:border-secondary transition-colors',
+                      settings.logoUrl === getAssetUrl(asset.id) ? 'border-secondary' : 'border-transparent'
                     ]}
-                    data-url={asset.url}
+                    data-url={getAssetUrl(asset.id)}
                   >
-                    <img src={asset.url} alt={asset.name} class="w-full h-full object-contain" />
-                    {settings.logoUrl === asset.url && (
+                    <img src={getAssetUrl(asset.id)} alt={asset.name} class="w-full h-full object-contain" />
+                    {settings.logoUrl === getAssetUrl(asset.id) && (
                       <div class="absolute top-1 right-1 bg-secondary text-white rounded-full p-0.5">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                           <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -85,14 +84,16 @@ const imageAssets = assets.filter(asset => asset.mime_type.startsWith('image/'))
                       value={settings.chatEnabled ? "true" : "false"}
                     />
                     <div
-                      class={`absolute inset-0 rounded-full transition-colors ${
+                      class:list={[
+                        'absolute inset-0 rounded-full transition-colors',
                         settings.chatEnabled ? 'bg-secondary' : 'bg-gray-200'
-                      }`}
+                      ]}
                     >
                       <div
-                        class={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                        class:list={[
+                          'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform',
                           settings.chatEnabled ? 'translate-x-5' : 'translate-x-0'
-                        }`}
+                        ]}
                       ></div>
                     </div>
                   </button>
@@ -121,14 +122,16 @@ const imageAssets = assets.filter(asset => asset.mime_type.startsWith('image/'))
                       value={settings.buildLabelEnabled ? "true" : "false"}
                     />
                     <div
-                      class={`absolute inset-0 rounded-full transition-colors ${
+                      class:list={[
+                        'absolute inset-0 rounded-full transition-colors',
                         settings.buildLabelEnabled ? 'bg-secondary' : 'bg-gray-200'
-                      }`}
+                      ]}
                     >
                       <div
-                        class={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                        class:list={[
+                          'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform',
                           settings.buildLabelEnabled ? 'translate-x-5' : 'translate-x-0'
-                        }`}
+                        ]}
                       ></div>
                     </div>
                   </button>

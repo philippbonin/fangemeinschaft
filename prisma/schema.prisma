@@ -9,147 +9,144 @@ datasource db {
 
 model User {
   id        String    @id @default(uuid())
+  email     String    @unique @map("email")
   firstName String
   lastName  String
-  email     String    @unique
   password  String
   lastLogin DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
 
+  @@index([deleted])
+  @@index([lastLogin])
+  @@index([createdAt])
   @@map("users")
 }
 
-model Session {
-  token     String   @id
-  userEmail String
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-
-  @@map("sessions")
-  @@index([expiresAt])
-}
-
-model News {
-  id        String   @id @default(uuid())
-  title     String
-  content   String   @db.Text
-  image     String
-  category  String
-  date      DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("news")
-  @@index([date])
-}
-
 model Player {
-  id        String   @id @default(uuid())
-  name      String
-  number    Int
-  position  String
-  image     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id         String            @id @default(uuid())
+  name       String
+  number     Int
+  position   String
+  image      String
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  deleted    Boolean           @default(false)
+  deletedAt  DateTime?
   formations FormationPlayer[]
 
+  @@index([deleted])
   @@map("players")
 }
 
 model Match {
-  id          String   @id @default(uuid())
-  date        DateTime
-  competition String
-  homeTeam    String   @map("home_team")
-  awayTeam    String   @map("away_team")
-  homeScore   Int?     @map("home_score")
-  awayScore   Int?     @map("away_score")
-  venue       String
-  played      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  formations     Formation[]
-  nextMatch      NextMatch[]
+  id               String             @id @default(uuid())
+  date             DateTime
+  competition      String
+  homeTeam         String             @map("home_team")
+  awayTeam         String             @map("away_team")
+  homeScore        Int?               @map("home_score")
+  awayScore        Int?               @map("away_score")
+  venue            String
+  played           Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  deleted          Boolean            @default(false)
+  deletedAt        DateTime?
+  formations       Formation[]
+  nextMatch        NextMatch[]
   nextMatchHistory NextMatchHistory[]
 
-  @@map("matches")
+  @@index([deleted])
   @@index([date])
+  @@map("matches")
 }
 
 model Fanclub {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
   president String
   phone     String?
   mobile    String?
   email     String
   website   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
 
+  @@index([deleted])
   @@map("fanclubs")
 }
 
 model Formation {
-  id        String   @id @default(uuid())
-  matchId   String   @map("match_id")
-  active    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String            @id @default(uuid())
+  matchId   String            @map("match_id")
+  active    Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  deleted   Boolean           @default(false)
+  deletedAt DateTime?
+  players   FormationPlayer[]
+  match     Match             @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  match    Match             @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  players  FormationPlayer[]
-
-  @@map("formations")
+  @@index([deleted])
   @@index([matchId])
+  @@map("formations")
 }
 
 model FormationPlayer {
-  id          String   @id @default(uuid())
-  formationId String   @map("formation_id")
-  playerId    String   @map("player_id")
-  positionX   Decimal  @map("position_x")
-  positionY   Decimal  @map("position_y")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String    @id @default(uuid())
+  formationId String    @map("formation_id")
+  playerId    String    @map("player_id")
+  positionX   Decimal   @map("position_x")
+  positionY   Decimal   @map("position_y")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deleted     Boolean   @default(false)
+  deletedAt   DateTime?
+  formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  player      Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
-  formation Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
-  player    Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
-
-  @@map("formation_players")
+  @@index([deleted])
   @@index([formationId])
   @@index([playerId])
+  @@map("formation_players")
 }
 
 model Asset {
-  id        String   @id @default(uuid())
+  id        String    @id @default(cuid()) @db.VarChar(36)
   name      String
   data      Bytes
-  mimeType  String   @map("mime_type")
+  mimeType  String    @map("mime_type")
   size      Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
 
-  @@map("assets")
-  @@index([name])
+  @@index([deleted])
+  @@index([name], map: "idx_assets_name")
 }
 
 model NextMatch {
-  id             String   @id @default(uuid())
-  matchId        String   @map("match_id")
-  ticketLink     String?  @map("ticket_link")
-  moreInfoContent String?  @map("more_info_content") @db.Text
-  active         Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String    @id @default(uuid())
+  matchId         String    @map("match_id")
+  ticketLink      String?   @map("ticket_link")
+  moreInfoContent String?   @map("more_info_content") @db.Text
+  active          Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deleted         Boolean   @default(false)
+  deletedAt       DateTime?
+  match           Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
-
-  @@map("next_match")
+  @@index([deleted])
   @@index([active])
+  @@index([matchId], map: "next_match_match_id_fkey")
+  @@map("next_match")
 }
 
 model NextMatchHistory {
@@ -160,19 +157,55 @@ model NextMatchHistory {
   activatedAt     DateTime  @map("activated_at")
   deactivatedAt   DateTime? @map("deactivated_at")
   createdAt       DateTime  @default(now())
+  deleted         Boolean   @default(false)
+  deletedAt       DateTime?
+  match           Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
-
+  @@index([deleted])
+  @@index([matchId], map: "next_match_history_match_id_fkey")
   @@map("next_match_history")
 }
 
 model Settings {
-  id               String   @id @default(uuid())
-  logoUrl          String   @map("logo_url")
-  chatEnabled      Boolean  @default(true) @map("chat_enabled")
-  buildLabelEnabled Boolean  @default(true) @map("build_label_enabled")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                String    @id @default(uuid())
+  logoUrl           String    @map("logo_url")
+  chatEnabled       Boolean   @default(true) @map("chat_enabled")
+  buildLabelEnabled Boolean   @default(true) @map("build_label_enabled")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deleted           Boolean   @default(false)
+  deletedAt         DateTime?
 
+  @@index([deleted])
   @@map("settings")
+}
+
+model Session {
+  token     String    @id
+  userEmail String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime  @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
+
+  @@index([deleted])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model News {
+  id        String    @id @default(uuid())
+  title     String
+  content   String    @db.Text
+  image     String
+  category  String
+  date      DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
+
+  @@index([deleted])
+  @@index([date])
+  @@map("news")
 }
