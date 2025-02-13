@@ -38,6 +38,9 @@ NODE_OPTIONS="--openssl-legacy-provider"
 DATABASE_URL="mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:3306/${DB_NAME}"
 
 ```
+Enter API Key for ninja-api in deployment/misc/builLabel.js
+Used for fetching the current "Bundesligatabelle".
+
 2. install dependencies
 run in root directory
 ```
