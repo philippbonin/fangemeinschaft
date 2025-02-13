@@ -1,7 +1,8 @@
 #!/bin/sh
 
 docker-compose -f docker-compose.yml --env-file ../../.env ps
-docker-compose -f docker-compose.yml --env-file ../../.env down
+./stop.sh
+
 docker system prune -a --volumes
 
 # Build the Docker images with explicit build arg
@@ -9,5 +10,5 @@ docker-compose -f docker-compose.yml --env-file ../../.env build \
    --no-cache
 
 # Start the services
-docker-compose -f docker-compose.yml --env-file ../../.env up
+./start.sh
 docker image prune -f

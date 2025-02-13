@@ -19,42 +19,36 @@ cd fangemeinschaft
 
 Create `.env` file in the project root:
 ```env
-DB_USER= <<ENTER SOMETHING>>
-DB_PASSWORD= <<ENTER SOMETHING>>
-DB_NAME= <<ENTER SOMETHING>>
-DB_HOST=fangemeinschaft-dev-db
-MARIADB_SSL=OFF
-MYSQL_ROOT_PASSWORD= <<ENTER SOMETHING>>
-max_allowed_packet=64M
-wait_timeout=600
-interactive_timeout=600
-net_read_timeout=600
-net_write_timeout=600
-JWT_SECRET= <<ENTER SOMETHING>>
-NODE_ENV=development
-PRISMA_CLIENT_ENGINE_TYPE=binary
-PRISMA_CLI_ENGINE_TYPE=binary
-NODE_OPTIONS="--openssl-legacy-provider"
-DATABASE_URL="mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:3306/${DB_NAME}"
+# Database
+DATABASE_URL="mysql://fangemeinschaft:fangemeinschaft@localhost:3306/fangemeinschaft"
+DB_USER=fangemeinschaft
+DB_PASSWORD=fangemeinschaft
+DB_NAME=fangemeinschaft
+MYSQL_ROOT_PASSWORD=rootpassword
 
-```
-2. install dependencies
-run in root directory
-```
-npm install
+# JWT
+JWT_SECRET=your-development-secret
+
+# App
+NODE_ENV=development
+HOST=0.0.0.0
+PORT=3000
 ```
 
 3. Start the development environment:
 ```bash
-cd deployment/development/
-chmod +x clean_restart.sh restart.sh start.sh stop.sh
-./start.sh
+docker-compose -f deployment/docker-compose.yml up -d
+```
+
+4. Initialize the database:
+```bash
+docker-compose exec app ./deployment/init-db.sh
 ```
 
 The application will be available at:
-- Frontend: http://localhost:3001
-- Admin Panel: http://localhost:3001/admin
-- API: http://localhost:3001/api
+- Frontend: http://localhost:3000
+- Admin Panel: http://localhost:3000/admin
+- API: http://localhost:3000/api
 
 Default admin credentials:
 - Email: admin@fangemeinschaft.de
@@ -106,7 +100,12 @@ Database
 
 ```
 /
-├── deployment/          # Deployment/shipping to prod configurations
+├── deployment/          # Deployment configurations
+│   ├── docker-compose.yml      # Development compose
+│   ├── docker-compose.prod.yml # Production compose
+│   ├── Dockerfile             # Development Dockerfile
+│   ├── Dockerfile.prod        # Production Dockerfile
+│   └── nginx/                 # Nginx configurations
 ├── prisma/             # Database configurations
 │   ├── schema.prisma          # Database schema
 │   ├── migrations/           # Database migrations
@@ -125,20 +124,102 @@ Database
 
 ```bash
 # Start all services
-./deployment/development/start.sh
+docker-compose -f deployment/docker-compose.yml up -d
+
+# Watch logs
+docker-compose logs -f
 
 # Stop services
-./deployment/development/stop.sh
+docker-compose down
 ```
 
-### 2. Code Changes
+### 2. Database Management
+
+```bash
+# Run migrations
+docker-compose exec app npx prisma migrate deploy
+
+# Reset database
+docker-compose exec app npx prisma migrate reset
+
+# Access database
+docker-compose exec db mysql -u fangemeinschaft -pfangemeinschaft fangemeinschaft
+```
+
+### 3. Running Tests
+
+```bash
+# Run all tests
+docker-compose exec app npm test
+
+# Run specific tests
+docker-compose exec app npm run test:api
+docker-compose exec app npm run test:a11y
+```
+
+### 4. Code Changes
 
 The application uses hot reloading in development. Most changes will be reflected immediately without requiring a restart.
 
 For changes requiring a rebuild:
 ```bash
-./deployment/development/clean_start.sh
+docker-compose up -d --build app
 ```
+
+## Configuration Files
+
+### Key files that need adaptation:
+
+1. `.env` - Environment variables
+2. `deployment/nginx/conf.d/default.conf` - Nginx configuration
+3. `prisma/schema.prisma` - Database schema
+4. `src/lib/auth.ts` - Authentication settings
+
+## Troubleshooting
+
+### Common Issues
+
+1. Database Connection Errors
+```bash
+# Check database status
+docker-compose exec db mysqladmin ping -h localhost
+
+# Verify connection
+docker-compose exec app npx prisma db push --preview-feature
+```
+
+2. Permission Issues
+```bash
+# Fix file permissions
+sudo chown -R $USER:$USER .
+
+# Fix database permissions
+docker-compose exec db mysql -e "GRANT ALL ON fangemeinschaft.* TO 'fangemeinschaft'@'%';"
+```
+
+3. Build Issues
+```bash
+# Clean Docker cache
+docker builder prune
+
+# Rebuild without cache
+docker-compose build --no-cache
+```
+
+## Additional Documentation
+
+Detailed documentation is available in the `src/docs` directory:
+
+- [API Documentation](src/docs/api.md)
+- [Database Guide](src/docs/database.md)
+- [Deployment Guide](src/docs/deployment.md)
+- [Testing Guide](src/docs/testing.md)
+- [Codebase Structure](src/docs/codebase-structure.md)
+- [Application Flow](src/docs/application-flow.md)
+- [Docker Deployment](src/docs/docker-deployment.md)
+- [Migrations Guide](src/docs/migrations.md)
+- [Prisma Guide](src/docs/prisma.md)
+
 
 ## License
 

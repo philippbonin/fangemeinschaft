@@ -3,9 +3,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
 
-// Get environment type from command-line arguments (default to 'dev')
-const envType = process.argv[2] === 'prod' ? 'prod' : 'dev';
-
 function executeGitCommand(command) {
     return execSync(command).toString('utf8').trim();
 }
@@ -20,7 +17,6 @@ const timestamp = new Date().toISOString()
 
 // Set environment variable
 process.env.BUILD_TIMESTAMP = timestamp;
-console.log(`Building with timestamp: ${timestamp} for environment: ${envType}`);
 
 // Adjectives and nouns for fallback name generation
 const adjectives = ['swift', 'bright', 'calm', 'wise', 'bold', 'brave', 'kind', 'pure', 'warm', 'cool'];
@@ -70,13 +66,11 @@ async function saveBuildInfo(buildName) {
     buildName,
     branch,
     commit,
-    environment: envType
+    environment: "prod"
   };
 
   // Define output directory based on environment
-  const outputDir = envType === 'prod'
-    ? path.join(process.cwd(), '../../','dist', 'client')
-    : path.join(process.cwd(), '../../','public');
+  const outputDir = path.join(process.cwd());
 
   // Ensure directory exists
   await fs.mkdir(outputDir, { recursive: true });
