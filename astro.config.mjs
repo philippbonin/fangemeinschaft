@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import 'dotenv/config'; // Load .env variables
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
 import node from '@astrojs/node';
@@ -7,7 +8,7 @@ export default defineConfig({
   output: 'server',
   server: {
     host: true,
-    port: process.env.PORT || 3000
+    port: process.env.APP_PORT || 3000
   },
   adapter: node({
     mode: 'standalone'
@@ -24,7 +25,6 @@ export default defineConfig({
       'process.env.BUILD_TIMESTAMP': JSON.stringify(process.env.BUILD_TIMESTAMP)
     },
     build: {
-      // Copy docs to output directory
       rollupOptions: {
         input: {
           main: 'src/pages/index.astro',

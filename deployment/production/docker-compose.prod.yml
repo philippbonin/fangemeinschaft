@@ -11,8 +11,6 @@ services:
       - '80:80'    # Public HTTP Port
       - '443:443'  # Public HTTPS Port
       - '81:81'    # NPM Admin Web Interface
-    env_file:
-      - ../../.env.production
     environment:
       DB_MYSQL_HOST: "npm-db"
       DB_MYSQL_PORT: 3306
@@ -29,8 +27,6 @@ services:
     restart: unless-stopped
     networks:
       - app-network
-    env_file:
-      - ../../.env.production
     environment:
       MYSQL_ROOT_PASSWORD: 'npm_root_password'
       MYSQL_DATABASE: 'npm_db'
