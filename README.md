@@ -56,10 +56,6 @@ The application will be available at:
 - Admin Panel: http://localhost:3001/admin
 - API: http://localhost:3001/api
 
-Default admin credentials:
-- Email: admin@fangemeinschaft.de
-- Password: 4rfvVGZ/1984
-
 ## Project Structure
 
 1️⃣ Core Application Logic
